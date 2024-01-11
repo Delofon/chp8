@@ -36,6 +36,7 @@ typedef enum
 uint16_t pop(vm_t *vm);
 void push(vm_t *vm, uint16_t val);
 status step(vm_t *vm);
+char* sttocstr(status st);
 
 #endif
 

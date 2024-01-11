@@ -57,6 +57,7 @@ int main(int argc, char **argv)
         fprintf(stderr, "error: could not allocate memory: %s\n", strerror(errno));
         return 2;
     }
+    memset(vm.mem, 0, 4096);
 
     loadfont(&vm);
 
@@ -69,9 +70,6 @@ int main(int argc, char **argv)
 
     fclose(progfile);
 
-    //FILE *memdump = fopen("memdump", "wb");
-    //fwrite(vm.mem, 1, 4096, memdump);
-
     int paerror = 0;
     s = pabegin(&paerror);
     if(paerror != PA_OK)
@@ -80,7 +78,7 @@ int main(int argc, char **argv)
         return 4;
     }
 
-    initscr();
+    //initscr();
     
     noecho();
     nodelay(stdscr, true);
@@ -91,10 +89,17 @@ int main(int argc, char **argv)
 
     while(!vm.halt)
     {
-        //if(frame == 30) vm.halt = 1;
+        if(frame == 60) vm.halt = 1;
 
         clock_t start = clock();
-        step(&vm);
+        status st = step(&vm);
+
+        if(st != ST_OK)
+        {
+            endwin();
+            fprintf(stderr, "error: virtual machine encountered an error: %s\n", sttocstr(st));
+            return 5;
+        }
 
         if(vm.redrawscreen)
         {
@@ -108,6 +113,9 @@ int main(int argc, char **argv)
     }
 
     endwin(); 
+
+    FILE *memdump = fopen("memdump", "wb");
+    fwrite(vm.mem, 1, 4096, memdump);
 
     //printf("registers: ");
     //for(int i = 0; i < 16; i++)
@@ -132,22 +140,22 @@ int input()
 {
     const int mapping[16] =
     { 
-        'X',
+        'x',
         '1',
         '2',
         '3',
-        'Q',
-        'W',
-        'E',
-        'A',
-        'S',
-        'D',
-        'Z',
-        'C',
+        'q',
+        'w',
+        'e',
+        'a',
+        's',
+        'd',
+        'z',
+        'c',
         '4',
-        'R',
-        'F',
-        'V'
+        'r',
+        'f',
+        'v'
     };
     int ch = getch();
 

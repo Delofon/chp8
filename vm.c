@@ -17,8 +17,26 @@ void push(vm_t *vm, uint16_t val)
     vm->stack[vm->SP++] = val;
 }
 
+char* sttocstr(status st)
+{
+    switch(st)
+    {
+        case ST_OK:
+            return "ST_OK";
+            break;
+        case ST_STACKOVERFLOW:
+            return "ST_STACKOVERFLOW";
+            break;
+        case ST_STACKUNDERFLOW:
+            return "ST_STACKUNDERFLOW";
+            break;
+    }
+    return "ST_UNKNOWN";
+}
+
 status step(vm_t *vm)
 {
+    printf("pre segfault: mem PC memsize: %x %d %d\n", vm->mem, vm->PC, MEMORY_SIZE);
     uint16_t op   = (vm->mem[vm->PC] << 8) | (vm->mem[vm->PC+1]);
     uint8_t  hn   = (op & 0xf000) >> 8;
     uint8_t  ln   = (op & 0x00ff);
@@ -27,15 +45,17 @@ status step(vm_t *vm)
     uint8_t  x    = (op & 0x0f00) >> 8;
     uint8_t  y    = (op & 0x00f0) >> 4;
 
-    //printf("op: 0x%04x\n", op);
-    //printf("registers: ");
-    //for(int i = 0; i < 16; i++)
-    //{
-    //    printf("%d ", vm->V[i]);
-    //}
-    //printf("\nnnn: %d\n", nnn);
-    //printf("PC: 0x%04x\n", vm->PC);
-    //printf("========================\n");
+    printf("op: 0x%04x\n", op);
+    printf("registers: ");
+    for(int i = 0; i < 16; i++)
+    {
+        printf("%d ", vm->V[i]);
+    }
+    printf("\nnnn: %d\n", nnn);
+    printf("PC: 0x%04x\n", vm->PC);
+    printf("SP: 0x%04x\n", vm->SP);
+    printf("I: 0x%04x\n", vm->I);
+    printf("========================\n");
 
     switch(hn)
     {
@@ -44,8 +64,8 @@ status step(vm_t *vm)
             if(ln == 0xe0) memset(vm->screen, 0, sizeof(vm->screen));
             if(ln == 0xee) 
             {
-                vm->PC = pop(vm) - 2;
                 if(vm->PC == UINT16_MAX) return ST_STACKUNDERFLOW;
+                vm->PC = pop(vm) - 2;
             }
             break;
         case 0x10:
@@ -118,7 +138,7 @@ status step(vm_t *vm)
             vm->PC = vm->V[0] + nnn - 2;
             break;
         case 0xc0:
-            vm->V[x] = rand() & ln;
+            vm->V[x] = random() & ln;
             break;
         case 0xd0:
             draw(vm, vm->V[x], vm->V[y], n);
@@ -140,7 +160,9 @@ status step(vm_t *vm)
                     vm->V[x] = vm->delay;
                     break;
                 case 0x0a:
+                    nodelay(stdscr, false);
                     vm->V[x] = input();
+                    nodelay(stdscr, true);
                     break;
                 case 0x15:
                     vm->delay = vm->V[x];
@@ -174,6 +196,7 @@ status step(vm_t *vm)
     if(vm->sound >  0) vm->sound--;
 
     vm->PC+=2;
+    if(vm->PC >= 0x0ffe) vm->halt = true;
     return ST_OK;
 }
 
