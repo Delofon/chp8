@@ -46,17 +46,19 @@ int main(int argc, char **argv)
         .halt = false,
 
         .delay = 0,
-        .sound = 0
+        .sound = 0,
+
+        .redrawscreen = 0
     };
 
-    vm.mem = malloc(4096);
+    vm.mem = malloc(MEMORY_SIZE);
     if(!vm.mem)
     {
         fprintf(stderr, "error: could not allocate memory: %s\n", strerror(errno));
         return 2;
     }
 
-    loadsprites(&vm);
+    loadfont(&vm);
 
     fread(vm.mem+0x0200, 1, 0x0fff, progfile);
     if(ferror(progfile))
@@ -78,7 +80,7 @@ int main(int argc, char **argv)
         return 4;
     }
 
-    //initscr();
+    initscr();
     
     noecho();
     nodelay(stdscr, true);
@@ -89,13 +91,17 @@ int main(int argc, char **argv)
 
     while(!vm.halt)
     {
-        //if(frame == 300) vm.halt = 1;
+        //if(frame == 30) vm.halt = 1;
 
         clock_t start = clock();
         step(&vm);
 
-        drawscr(&vm);
-        refresh();
+        if(vm.redrawscreen)
+        {
+            drawscr(&vm);
+            refresh();
+            vm.redrawscreen = 0;
+        }
 
         while(clock() - start < target);
         frame++;
@@ -103,14 +109,14 @@ int main(int argc, char **argv)
 
     endwin(); 
 
-    printf("registers: ");
-    for(int i = 0; i < 16; i++)
-    {
-        printf("%d ", vm.V[i]);
-    }
-    printf("\nPC: %d\n", vm.PC);
-    printf("SP: %d\n", vm.SP);
-    printf("I:  %d\n", vm.I);
+    //printf("registers: ");
+    //for(int i = 0; i < 16; i++)
+    //{
+    //    printf("%d ", vm.V[i]);
+    //}
+    //printf("\nPC: %d\n", vm.PC);
+    //printf("SP: %d\n", vm.SP);
+    //printf("I:  %d\n", vm.I);
 
     paend(s);
     free(vm.mem);
@@ -172,10 +178,11 @@ void itocoord(int i, int *x, int *y)
 
 void draw(vm_t *vm, int x, int y, int n)
 {
-    uint8_t *sprite = vm->mem + (15*n);
+    uint8_t *sprite = vm->mem + vm->I;
     vm->V[15] = 0;
+    vm->redrawscreen = 1;
 
-    for(int v = 0; v < 15; v++)
+    for(int v = 0; v < n; v++)
     {
         for(int u = 0; u < 8; u++)
         {
@@ -201,18 +208,118 @@ void drawscr(vm_t *vm)
     }
 }
 
-void loadsprites(vm_t *vm)
+void loadfont(vm_t *vm)
 {
-    vm->mem[0] = 0b00011000;
-    vm->mem[1] = 0b00100100;
-    vm->mem[2] = 0b00100100;
-    vm->mem[3] = 0b00100100;
-    vm->mem[4] = 0b00011000;
+    // 0
+    vm->mem[0] = 0xf0;
+    vm->mem[1] = 0x90;
+    vm->mem[2] = 0x90;
+    vm->mem[3] = 0x90;
+    vm->mem[4] = 0xf0;
 
-    vm->mem[15] = 0b00010000;
-    vm->mem[16] = 0b00110000;
-    vm->mem[17] = 0b00010000;
-    vm->mem[18] = 0b00010000;
-    vm->mem[19] = 0b00111000;
+    // 1
+    vm->mem[5] = 0x20;
+    vm->mem[6] = 0x60;
+    vm->mem[7] = 0x20;
+    vm->mem[8] = 0x20;
+    vm->mem[9] = 0x70;
+
+    // 2
+    vm->mem[10] = 0xf0;
+    vm->mem[11] = 0x10;
+    vm->mem[12] = 0xf0;
+    vm->mem[13] = 0x80;
+    vm->mem[14] = 0xf0;
+
+    // 3
+    vm->mem[15] = 0xf0;
+    vm->mem[16] = 0x10;
+    vm->mem[17] = 0xf0;
+    vm->mem[18] = 0x10;
+    vm->mem[19] = 0xf0;
+
+    // 4
+    vm->mem[20] = 0x90;
+    vm->mem[21] = 0x90;
+    vm->mem[22] = 0xf0;
+    vm->mem[23] = 0x10;
+    vm->mem[24] = 0x10;
+
+    // 5
+    vm->mem[25] = 0xf0;
+    vm->mem[26] = 0x80;
+    vm->mem[27] = 0xf0;
+    vm->mem[28] = 0x10;
+    vm->mem[29] = 0xf0;
+
+    // 6
+    vm->mem[30] = 0xf0;
+    vm->mem[31] = 0x80;
+    vm->mem[32] = 0xf0;
+    vm->mem[33] = 0x90;
+    vm->mem[34] = 0xf0;
+
+    // 7
+    vm->mem[35] = 0xf0;
+    vm->mem[36] = 0x10;
+    vm->mem[37] = 0x20;
+    vm->mem[38] = 0x40;
+    vm->mem[39] = 0x40;
+
+    // 8
+    vm->mem[40] = 0xf0;
+    vm->mem[41] = 0x90;
+    vm->mem[42] = 0xf0;
+    vm->mem[43] = 0x90;
+    vm->mem[44] = 0xf0;
+
+    // 9
+    vm->mem[45] = 0xf0;
+    vm->mem[46] = 0x90;
+    vm->mem[47] = 0xf0;
+    vm->mem[48] = 0x10;
+    vm->mem[49] = 0xf0;
+
+    // A
+    vm->mem[50] = 0xf0;
+    vm->mem[51] = 0x90;
+    vm->mem[52] = 0xf0;
+    vm->mem[53] = 0x90;
+    vm->mem[54] = 0x90;
+
+    // B
+    vm->mem[55] = 0xe0;
+    vm->mem[56] = 0x90;
+    vm->mem[57] = 0xe0;
+    vm->mem[58] = 0x90;
+    vm->mem[59] = 0xe0;
+
+    // C
+    vm->mem[60] = 0xf0;
+    vm->mem[61] = 0x80;
+    vm->mem[62] = 0x80;
+    vm->mem[63] = 0x80;
+    vm->mem[64] = 0xf0;
+
+    // D
+    vm->mem[65] = 0xe0;
+    vm->mem[66] = 0x90;
+    vm->mem[67] = 0x90;
+    vm->mem[68] = 0x90;
+    vm->mem[69] = 0xe0;
+
+    // E
+    vm->mem[70] = 0xf0;
+    vm->mem[71] = 0x80;
+    vm->mem[72] = 0xf0;
+    vm->mem[73] = 0x80;
+    vm->mem[74] = 0xf0;
+
+    // F
+    vm->mem[75] = 0xf0;
+    vm->mem[76] = 0x80;
+    vm->mem[77] = 0xf0;
+    vm->mem[78] = 0x80;
+    vm->mem[79] = 0x80;
 }
 

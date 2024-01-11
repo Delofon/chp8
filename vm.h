@@ -7,6 +7,7 @@
 #define SCREEN_WIDTH 64
 #define SCREEN_HEIGHT 32
 #define SCREEN_SIZE SCREEN_WIDTH * SCREEN_HEIGHT
+#define MEMORY_SIZE 4096
 
 typedef struct _vm_t
 {
@@ -21,6 +22,8 @@ typedef struct _vm_t
 
     uint8_t delay;
     uint8_t sound;
+
+    uint8_t redrawscreen;
 } vm_t;
 
 typedef enum

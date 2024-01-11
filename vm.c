@@ -19,43 +19,51 @@ void push(vm_t *vm, uint16_t val)
 
 status step(vm_t *vm)
 {
-    uint8_t op  = vm->mem[vm->PC];
-    uint8_t hn  = (op & 0xf000) >> 2;
-    uint8_t ln  = (op & 0x00ff);
-    uint8_t n   = (op & 0x000f);
-    uint8_t nnn = (op & 0x0fff);
-    uint8_t x   = (op & 0x0f00) >> 2;
-    uint8_t y   = (op & 0x00f0) >> 1;
+    uint16_t op   = (vm->mem[vm->PC] << 8) | (vm->mem[vm->PC+1]);
+    uint8_t  hn   = (op & 0xf000) >> 8;
+    uint8_t  ln   = (op & 0x00ff);
+    uint8_t  n    = (op & 0x000f);
+    uint16_t nnn  = (op & 0x0fff);
+    uint8_t  x    = (op & 0x0f00) >> 8;
+    uint8_t  y    = (op & 0x00f0) >> 4;
 
-    printf("op hn ln: 0x%04x 0x%02x 0x%02x\n", op, hn, ln);
+    //printf("op: 0x%04x\n", op);
+    //printf("registers: ");
+    //for(int i = 0; i < 16; i++)
+    //{
+    //    printf("%d ", vm->V[i]);
+    //}
+    //printf("\nnnn: %d\n", nnn);
+    //printf("PC: 0x%04x\n", vm->PC);
+    //printf("========================\n");
 
     switch(hn)
     {
         case 0x00:
-            if(ln == 0x00) vm->halt = 1;
+            //if(ln == 0x00) vm->halt = 1;
             if(ln == 0xe0) memset(vm->screen, 0, sizeof(vm->screen));
             if(ln == 0xee) 
             {
-                vm->PC = pop(vm);
+                vm->PC = pop(vm) - 2;
                 if(vm->PC == UINT16_MAX) return ST_STACKUNDERFLOW;
             }
             break;
         case 0x10:
-            vm->PC = nnn;
+            vm->PC = nnn - 2;
             break;
         case 0x20:
             if(vm->SP == STACK_SIZE) return ST_STACKOVERFLOW;
             push(vm, vm->PC);
-            vm->PC = nnn;
+            vm->PC = nnn - 2;
             break;
         case 0x30:
-            if(vm->V[x] == ln) vm->PC++;
+            if(vm->V[x] == ln) vm->PC+=2;
             break;
         case 0x40:
-            if(vm->V[x] != ln) vm->PC++;
+            if(vm->V[x] != ln) vm->PC+=2;
             break;
         case 0x50:
-            if(vm->V[x] == vm->V[y]) vm->PC++;
+            if(vm->V[x] == vm->V[y]) vm->PC+=2;
             break;
         case 0x60:
             vm->V[x] = ln;
@@ -87,7 +95,7 @@ status step(vm_t *vm)
                     vm->V[x] -= vm->V[y];
                     break;
                 case 0x06:
-                    vm->V[15] = vm->V[x] & 0x0001;
+                    vm->V[15] = vm->V[x] & 0x01;
                     vm->V[x] >>= 1;
                     break;
                 case 0x07:
@@ -95,19 +103,19 @@ status step(vm_t *vm)
                     vm->V[x] = vm->V[y] - vm->V[x];
                     break;
                 case 0x0e:
-                    vm->V[15] = vm->V[x] & 0x1000;
+                    vm->V[15] = vm->V[x] & 0x10;
                     vm->V[x] <<= 1;
                     break;
             }
             break;
         case 0x90:
-            if(vm->V[x] != vm->V[y]) vm->PC++;
+            if(vm->V[x] != vm->V[y]) vm->PC+=2;
             break;
         case 0xa0:
             vm->mem[vm->I] = nnn;
             break;
         case 0xb0:
-            vm->PC = vm->V[0] + nnn;
+            vm->PC = vm->V[0] + nnn - 2;
             break;
         case 0xc0:
             vm->V[x] = rand() & ln;
@@ -118,11 +126,11 @@ status step(vm_t *vm)
         case 0xe0:
             if(ln == 0x9e)
             {
-                if(input() == vm->V[x]) vm->PC++;
+                if(input() == vm->V[x]) vm->PC+=2;
             }
             else if(ln == 0xa1)
             {
-                if(input() != vm->V[x]) vm->PC++;
+                if(input() != vm->V[x]) vm->PC+=2;
             }
             break;
         case 0xf0:
@@ -144,7 +152,7 @@ status step(vm_t *vm)
                     vm->I += vm->V[x];
                     break;
                 case 0x29:
-                    vm->I = 15 * vm->V[x]; 
+                    vm->I = vm->V[x]*5; 
                     break;
                 case 0x33:
                     vm->mem[vm->I+2] = vm->V[x]       % 10;
@@ -165,7 +173,7 @@ status step(vm_t *vm)
     if(vm->sound == 1) pabeep();
     if(vm->sound >  0) vm->sound--;
 
-    vm->PC++;
+    vm->PC+=2;
     return ST_OK;
 }
 
