@@ -9,18 +9,17 @@
 #include <time.h>
 #include <ncurses.h>
 
+#include "main.h"
 #include "vm.h"
 #include "sound.h"
-
-void cls()
-{
-    printf("\e[1;1H\e[2J");
-}
 
 void usage()
 {
     printf("usage: chp8 <program>\n");
 }
+
+pa_simple *s;
+uint8_t screen[SCREEN_WIDTH * SCREEN_HEIGHT];
 
 int main(int argc, char **argv)
 {
@@ -37,14 +36,27 @@ int main(int argc, char **argv)
         return 1;
     }
 
-    uint8_t *mem = malloc(4096);
-    if(!mem)
+    vm_t vm =
+    {
+        .stack = { 0 },
+        .V = { 0 },
+        .I = 0,
+        .PC = 0x0200,
+        .SP = 0,
+        .halt = false,
+
+        .delay = 0,
+        .sound = 0
+    };
+
+    vm.mem = malloc(4096);
+    if(!vm.mem)
     {
         fprintf(stderr, "error: could not allocate memory: %s\n", strerror(errno));
         return 2;
     }
 
-    fread(mem+0x0200, 1, 0x0fff, progfile);
+    fread(vm.mem, 1, 0x0fff, progfile);
     if(ferror(progfile))
     {
         fprintf(stderr, "error: could not read program file: %s\n", strerror(errno));
@@ -54,33 +66,81 @@ int main(int argc, char **argv)
     fclose(progfile);
 
     int paerror = 0;
-    pa_simple *s = pabegin(&paerror);
+    s = pabegin(&paerror);
     if(paerror != PA_OK)
     {
         fprintf(stderr, "error: could not init pulseaudio: %s\n", pa_strerror(paerror));
         return 4;
     }
 
-    vm_t vm =
-    {
-        .V = { 0 },
-        .I = 0,
-        .PC = 0x0200,
-        .SP = 0,
-        .halt = false
-    };
-
     WINDOW* stdscr = initscr();
     
     noecho();
     nodelay(stdscr, true);
 
+    clock_t target = CLOCKS_PER_SEC / TARGET_HZ;
 
+    while(!vm.halt)
+    {
+        clock_t start = clock();
+        step(&vm);
+
+        while(clock() - start < target);
+
+        refresh();
+    }
 
     endwin(); 
 
     paend(s);
-    free(mem);
+    free(vm.mem);
     return 0;
+}
+
+void pabeep()
+{
+    paplay(s, 440, 1000);
+}
+
+int input()
+{
+    const int mapping[16] =
+    { 
+        'X',
+        '1',
+        '2',
+        '3',
+        'Q',
+        'W',
+        'E',
+        'A',
+        'S',
+        'D',
+        'Z',
+        'C',
+        '4',
+        'R',
+        'F',
+        'V'
+    };
+    int ch = getch();
+
+    for(int i = 0; i < 16; i++)
+    {
+        if(ch == mapping[i]) 
+            return i;
+    }
+
+    return -1;
+}
+
+void draw(vm_t *vm, int x, int y, int n)
+{
+    uint8_t *sprite = vm->mem + (15*n);
+
+    int index = x + y * SCREEN_WIDTH;
+    for(int i = 0; i < 15; i++)
+    {
+    }
 }
 
