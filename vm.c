@@ -27,10 +27,13 @@ status step(vm_t *vm)
     uint8_t x   = (op & 0x0f00) >> 2;
     uint8_t y   = (op & 0x00f0) >> 1;
 
+    printf("op hn ln: 0x%04x 0x%02x 0x%02x\n", op, hn, ln);
+
     switch(hn)
     {
         case 0x00:
-            if(ln == 0xe0) clear();
+            if(ln == 0x00) vm->halt = 1;
+            if(ln == 0xe0) memset(vm->screen, 0, sizeof(vm->screen));
             if(ln == 0xee) 
             {
                 vm->PC = pop(vm);

@@ -4,10 +4,14 @@
 #include <stdint.h>
 
 #define STACK_SIZE 64
+#define SCREEN_WIDTH 64
+#define SCREEN_HEIGHT 32
+#define SCREEN_SIZE SCREEN_WIDTH * SCREEN_HEIGHT
 
 typedef struct _vm_t
 {
     uint16_t stack[STACK_SIZE];
+    uint8_t screen[SCREEN_SIZE];
     uint8_t *mem;
     uint8_t V[16];
     uint16_t I;

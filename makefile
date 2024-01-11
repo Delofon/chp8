@@ -1,8 +1,10 @@
 .RECIPEPREFIX = >
 
 CC := gcc
-CFLAGS := -O3 -Wall -Wextra -Wshadow -Wswitch-enum -pedantic $(shell pkg-config --cflags libpulse-simple ncurses) -lm $(shell pkg-config --libs libpulse-simple ncurses)
+CFLAGS := $(shell pkg-config --cflags libpulse-simple ncurses) -lm $(shell pkg-config --libs libpulse-simple ncurses)
+CWARNINGS := -Wall -Wextra -Wshadow -Wswitch-enum -pedantic
+CNOWARNINGS := -Wno-strict-prototypes -Wno-gnu-binary-literal
 
 chp8:
-> $(CC) $(CFLAGS) main.c sound.c vm.c -o $@
+> $(CC) $(CWARNINGS) $(CNOWARNINGS) $(CFLAGS) main.c sound.c vm.c -o $@
 
