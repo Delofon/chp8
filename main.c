@@ -1,6 +1,6 @@
-#include <sys/stat.h>
 #include <pulse/simple.h>
 #include <pulse/error.h>
+#include <unistd.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <stdint.h>
@@ -18,7 +18,10 @@ void loadfont(vm_t *vm);
 
 void usage()
 {
-    printf("usage: chp8 <program>\n");
+    printf("Usage: chp8 [options] <program>\n");
+    printf("Options:\n");
+    printf("    -e <extensions>\n");
+    printf("        Choose CHIP-8 extensions. Valid arguments are: CHIP8, SCHIP, XOCHIP. Default: CHIP8\n");
 }
 
 pa_simple *s;
@@ -31,15 +34,42 @@ int main(int argc, char **argv)
         return 0;
     }
 
-    FILE *progfile = fopen(argv[1], "rb");
+    extensions_t extensions = CHIP8;
+    int opt;
+    while((opt = getopt(argc, argv, "e:")) != -1)
+    {
+        switch(opt)
+        {
+            case 'e':
+                if(strcmp(optarg, "CHIP8") == 0)
+                    extensions = CHIP8;
+                else if(strcmp(optarg, "SCHIP") == 0)
+                    extensions = SCHIP;
+                else if(strcmp(optarg, "XOCHIP") == 0)
+                    extensions = XOCHIP;
+                else
+                {
+                        fprintf(stderr, "error: unrecognized CHIP-8 extensions name: %s\n", optarg);
+                        return 6;
+                }
+                break;
+            default:
+                fprintf(stderr, "warning: unrecognized option %c, ignoring.\n", opt);
+                break;
+        }
+    }
+
+    FILE *progfile = fopen(argv[optind], "rb");
     if(!progfile)
     {
-        fprintf(stderr, "error: could not open file \"%s\": %s\n", argv[1], strerror(errno));
+        fprintf(stderr, "error: could not open file \"%s\": %s\n", argv[optind], strerror(errno));
         return 1;
     }
 
     vm_t vm =
     {
+        .extensions = extensions,
+
         .screen = { 0 },
         .stack = { 0 },
         .V = { 0 },
@@ -64,7 +94,7 @@ int main(int argc, char **argv)
 
     loadfont(&vm);
 
-    fread(vm.mem+0x0200, 1, 0x0fff, progfile);
+    fread(vm.mem+0x0200, 1, 0xf000-0x0200, progfile);
     if(ferror(progfile))
     {
         fprintf(stderr, "error: could not read program file: %s\n", strerror(errno));
@@ -95,11 +125,11 @@ int main(int argc, char **argv)
     while(!vm.halt)
     {
 #ifdef DEBUG
-        if(frame == 60) vm.halt = 1;
+        if(frame == FRAMELIM) vm.halt = 1;
 #endif
 
         clock_t start = clock();
-        status st = step(&vm);
+        status_t st = step(&vm);
 
         if(st != ST_OK)
         {
@@ -178,40 +208,18 @@ int input()
     return -1;
 }
 
-int coordtoi(int x, int y)
+int blockinginput()
 {
-    if(x < 0) return -1;
-    if(x > SCREEN_WIDTH) return -1;
-    if(y < 0) return -1;
-    if(y > SCREEN_HEIGHT) return -1;
-
-    return x + y * SCREEN_WIDTH;
+    nodelay(stdscr, false);
+    int inp = input();
+    nodelay(stdscr, true);
+    return inp;
 }
 
 void itocoord(int i, int *x, int *y)
 {
     *x = i % SCREEN_WIDTH;
     *y = i / SCREEN_WIDTH;
-}
-
-void draw(vm_t *vm, int x, int y, int n)
-{
-    uint8_t *sprite = vm->mem + vm->I;
-    vm->V[15] = 0;
-    vm->redrawscreen = 1;
-
-    for(int v = 0; v < n; v++)
-    {
-        for(int u = 0; u < 8; u++)
-        {
-            uint8_t bit = (sprite[v] >> (7 - u)) & 0x0001;
-            int i = coordtoi(x+u, y+v);
-            if(i == -1) continue;
-
-            if(vm->screen[i] && bit) vm->V[15] = 1;
-            vm->screen[i] ^= bit;
-        }
-    }
 }
 
 void drawscr(vm_t *vm)

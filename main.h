@@ -6,9 +6,12 @@
 #include "vm.h"
 
 #define TARGET_HZ 60
+#ifndef FRAMELIM
+#define FRAMELIM 60
+#endif
 
 int input();
-void draw(vm_t *vm, int x, int y, int n);
+int blockinginput();
 void pabeep();
 uint8_t randint();
 

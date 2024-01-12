@@ -1,4 +1,3 @@
-#include <ncurses.h>
 #include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
@@ -17,7 +16,7 @@ void push(vm_t *vm, uint16_t val)
     vm->stack[vm->SP++] = val;
 }
 
-char *sttocstr(status st)
+char *sttocstr(status_t st)
 {
     switch(st)
     {
@@ -34,7 +33,24 @@ char *sttocstr(status st)
     return "ST_UNKNOWN";
 }
 
-status step(vm_t *vm)
+char *exttocstr(extensions_t ext)
+{
+    switch(ext)
+    {
+        case CHIP8:
+            return "CHIP8";
+            break;
+        case SCHIP:
+            return "SCHIP";
+            break;
+        case XOCHIP:
+            return "XOCHIP";
+            break;
+    }
+    return "UNKNOWN";
+}
+
+status_t step(vm_t *vm)
 {
     uint16_t op   = (vm->mem[vm->PC] << 8) | (vm->mem[vm->PC+1]);
     uint8_t  hn   = (op & 0xf000) >> 8;
@@ -161,9 +177,7 @@ status step(vm_t *vm)
                     vm->V[x] = vm->delay;
                     break;
                 case 0x0a:
-                    nodelay(stdscr, false);
-                    vm->V[x] = input();
-                    nodelay(stdscr, true);
+                    vm->V[x] = blockinginput();
                     break;
                 case 0x15:
                     vm->delay = vm->V[x];
@@ -197,7 +211,37 @@ status step(vm_t *vm)
     if(vm->sound >  0) vm->sound--;
 
     vm->PC+=2;
-    if(vm->PC >= 0x0ffe) vm->halt = true;
+    if(vm->PC >= 0x0ffe) vm->halt = 1;
     return ST_OK;
+}
+
+int coordtoi(int x, int y)
+{
+    if(x < 0) return -1;
+    if(x > SCREEN_WIDTH) return -1;
+    if(y < 0) return -1;
+    if(y > SCREEN_HEIGHT) return -1;
+
+    return x + y * SCREEN_WIDTH;
+}
+
+void draw(vm_t *vm, int x, int y, int n)
+{
+    uint8_t *sprite = vm->mem + vm->I;
+    vm->V[15] = 0;
+    vm->redrawscreen = 1;
+
+    for(int v = 0; v < n; v++)
+    {
+        for(int u = 0; u < 8; u++)
+        {
+            uint8_t bit = (sprite[v] >> (7 - u)) & 0x0001;
+            int i = coordtoi(x+u, y+v);
+            if(i == -1) continue;
+
+            if(vm->screen[i] && bit) vm->V[15] = 1;
+            vm->screen[i] ^= bit;
+        }
+    }
 }
 

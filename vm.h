@@ -9,8 +9,17 @@
 #define SCREEN_SIZE SCREEN_WIDTH * SCREEN_HEIGHT
 #define MEMORY_SIZE 4096
 
+typedef enum
+{
+    CHIP8 = 0,
+    SCHIP,
+    XOCHIP
+} extensions_t;
+
 typedef struct _vm_t
 {
+    extensions_t extensions;
+
     uint16_t stack[STACK_SIZE];
     uint8_t screen[SCREEN_SIZE];
     uint8_t *mem;
@@ -31,12 +40,14 @@ typedef enum
     ST_OK = 0,
     ST_STACKOVERFLOW,
     ST_STACKUNDERFLOW
-} status;
+} status_t;
 
 uint16_t pop(vm_t *vm);
 void push(vm_t *vm, uint16_t val);
-status step(vm_t *vm);
-char* sttocstr(status st);
+status_t step(vm_t *vm);
+char *sttocstr(status_t st);
+char *exttocstr(extensions_t ext);
+void draw(vm_t *vm, int x, int y, int n);
 
 #endif
 
