@@ -65,7 +65,7 @@ status step(vm_t *vm)
             if(ln == 0xe0) memset(vm->screen, 0, sizeof(vm->screen));
             if(ln == 0xee) 
             {
-                if(vm->PC == UINT16_MAX) return ST_STACKUNDERFLOW;
+                if(vm->SP == 0) return ST_STACKUNDERFLOW;
                 vm->PC = pop(vm) - 2;
             }
             break;
