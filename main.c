@@ -224,7 +224,6 @@ void itocoord(int i, int *x, int *y)
 
 void drawscr(vm_t *vm)
 {
-    clear();
     for(int i = 0; i < SCREEN_SIZE; i++)
     {
         int x, y;

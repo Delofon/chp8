@@ -1,3 +1,4 @@
+#include <ncurses.h>
 #include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
@@ -78,7 +79,11 @@ status_t step(vm_t *vm)
     {
         case 0x00:
             //if(ln == 0x00) vm->halt = 1;
-            if(ln == 0xe0) memset(vm->screen, 0, sizeof(vm->screen));
+            if(ln == 0xe0) 
+            {
+                memset(vm->screen, 0, sizeof(vm->screen));
+                clear();
+            }
             if(ln == 0xee) 
             {
                 if(vm->SP == 0) return ST_STACKUNDERFLOW;
