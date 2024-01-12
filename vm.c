@@ -36,7 +36,7 @@ char* sttocstr(status st)
 
 status step(vm_t *vm)
 {
-    printf("pre segfault: mem PC memsize: %x %d %d\n", vm->mem, vm->PC, MEMORY_SIZE);
+    //printf("pre segfault: mem PC memsize: %x %d %d\n", vm->mem, vm->PC, MEMORY_SIZE);
     uint16_t op   = (vm->mem[vm->PC] << 8) | (vm->mem[vm->PC+1]);
     uint8_t  hn   = (op & 0xf000) >> 8;
     uint8_t  ln   = (op & 0x00ff);
@@ -45,6 +45,7 @@ status step(vm_t *vm)
     uint8_t  x    = (op & 0x0f00) >> 8;
     uint8_t  y    = (op & 0x00f0) >> 4;
 
+#ifdef DEBUG
     printf("op: 0x%04x\n", op);
     printf("registers: ");
     for(int i = 0; i < 16; i++)
@@ -56,6 +57,7 @@ status step(vm_t *vm)
     printf("SP: 0x%04x\n", vm->SP);
     printf("I: 0x%04x\n", vm->I);
     printf("========================\n");
+#endif
 
     switch(hn)
     {
@@ -138,7 +140,7 @@ status step(vm_t *vm)
             vm->PC = vm->V[0] + nnn - 2;
             break;
         case 0xc0:
-            vm->V[x] = random() & ln;
+            vm->V[x] = randint() & ln;
             break;
         case 0xd0:
             draw(vm, vm->V[x], vm->V[y], n);
@@ -182,10 +184,10 @@ status step(vm_t *vm)
                     vm->mem[vm->I]   = vm->V[x] / 100 % 10;
                     break;
                 case 0x55:
-                    memcpy(vm->mem+vm->I, vm->V, 16);
+                    memcpy(vm->mem+vm->I, &vm->V, x+1);
                     break;
                 case 0x65:
-                    memcpy(vm->V, vm->mem+vm->I, 16);
+                    memcpy(&vm->V, vm->mem+vm->I, x+1);
                     break;
             }
             break;

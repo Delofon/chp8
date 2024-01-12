@@ -13,6 +13,9 @@
 #include "vm.h"
 #include "sound.h"
 
+void drawscr(vm_t *vm);
+void loadfont(vm_t *vm);
+
 void usage()
 {
     printf("usage: chp8 <program>\n");
@@ -78,7 +81,9 @@ int main(int argc, char **argv)
         return 4;
     }
 
-    //initscr();
+#ifndef DEBUG
+    initscr();
+#endif
     
     noecho();
     nodelay(stdscr, true);
@@ -89,7 +94,9 @@ int main(int argc, char **argv)
 
     while(!vm.halt)
     {
+#ifdef DEBUG
         if(frame == 60) vm.halt = 1;
+#endif
 
         clock_t start = clock();
         status st = step(&vm);
@@ -114,17 +121,20 @@ int main(int argc, char **argv)
 
     endwin(); 
 
+#ifdef DEBUG
     FILE *memdump = fopen("memdump", "wb");
     fwrite(vm.mem, 1, 4096, memdump);
 
-    //printf("registers: ");
-    //for(int i = 0; i < 16; i++)
-    //{
-    //    printf("%d ", vm.V[i]);
-    //}
-    //printf("\nPC: %d\n", vm.PC);
-    //printf("SP: %d\n", vm.SP);
-    //printf("I:  %d\n", vm.I);
+    printf("====================\nVM state at the end of execution\n====================\n");
+    printf("registers: ");
+    for(int i = 0; i < 16; i++)
+    {
+        printf("%d ", vm.V[i]);
+    }
+    printf("\nPC: %d\n", vm.PC);
+    printf("SP: %d\n", vm.SP);
+    printf("I:  %d\n", vm.I);
+#endif
 
     paend(s);
     free(vm.mem);
@@ -329,5 +339,22 @@ void loadfont(vm_t *vm)
     vm->mem[77] = 0xf0;
     vm->mem[78] = 0x80;
     vm->mem[79] = 0x80;
+}
+
+uint32_t wyhash = 0;
+uint32_t wyhash32()
+{
+    wyhash += 0xe120fc15;
+    uint64_t tmp;
+    tmp = (uint64_t)wyhash * 0x4a39b70d;
+    uint32_t m1 = (tmp >> 32) ^ tmp;
+    tmp = (uint64_t)m1 * 0x12fad5c9;
+    uint32_t m2 = (tmp >> 32) ^ tmp;
+    return m2;
+}
+
+uint8_t randint()
+{
+    return (uint8_t)wyhash32();
 }
 
