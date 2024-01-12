@@ -36,7 +36,6 @@ char* sttocstr(status st)
 
 status step(vm_t *vm)
 {
-    //printf("pre segfault: mem PC memsize: %x %d %d\n", vm->mem, vm->PC, MEMORY_SIZE);
     uint16_t op   = (vm->mem[vm->PC] << 8) | (vm->mem[vm->PC+1]);
     uint8_t  hn   = (op & 0xf000) >> 8;
     uint8_t  ln   = (op & 0x00ff);
