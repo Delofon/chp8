@@ -90,11 +90,11 @@ int main(int argc, char **argv)
         fprintf(stderr, "error: could not allocate memory: %s\n", strerror(errno));
         return 2;
     }
-    memset(vm.mem, 0, 4096);
+    memset(vm.mem, 0, MEMORY_SIZE);
 
     loadfont(&vm);
 
-    fread(vm.mem+0x0200, 1, 0xf000-0x0200, progfile);
+    fread(vm.mem+0x0200, 1, MEMORY_SIZE-0x0200, progfile);
     if(ferror(progfile))
     {
         fprintf(stderr, "error: could not read program file: %s\n", strerror(errno));
@@ -153,7 +153,7 @@ int main(int argc, char **argv)
 
 #ifdef DEBUG
     FILE *memdump = fopen("memdump", "wb");
-    fwrite(vm.mem, 1, 4096, memdump);
+    fwrite(vm.mem, 1, MEMORY_SIZE, memdump);
 
     printf("====================\nVM state at the end of execution\n====================\n");
     printf("registers: ");
