@@ -17,7 +17,7 @@ void push(vm_t *vm, uint16_t val)
     vm->stack[vm->SP++] = val;
 }
 
-char* sttocstr(status st)
+char *sttocstr(status st)
 {
     switch(st)
     {
