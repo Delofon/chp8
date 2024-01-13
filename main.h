@@ -5,7 +5,9 @@
 
 #include "vm.h"
 
+#ifndef TARGET_HZ
 #define TARGET_HZ 60
+#endif
 #ifndef FRAMELIM
 #define FRAMELIM 60
 #endif

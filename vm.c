@@ -1,3 +1,4 @@
+#include <stdio.h>
 #include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
@@ -52,13 +53,13 @@ char *exttocstr(extensions_t ext)
 
 status_t step(vm_t *vm)
 {
-    uint16_t op   = (vm->mem[vm->PC] << 8) | (vm->mem[vm->PC+1]);
-    uint8_t  hn   = (op & 0xf000) >> 8;
-    uint8_t  ln   = (op & 0x00ff);
-    uint8_t  n    = (op & 0x000f);
-    uint16_t nnn  = (op & 0x0fff);
-    uint8_t  x    = (op & 0x0f00) >> 8;
-    uint8_t  y    = (op & 0x00f0) >> 4;
+    const uint16_t op   = (vm->mem[vm->PC] << 8) | (vm->mem[vm->PC+1]);
+    const uint8_t  hn   = (op & 0xf000) >> 8;
+    const uint8_t  ln   = (op & 0x00ff);
+    const uint8_t  n    = (op & 0x000f);
+    const uint16_t nnn  = (op & 0x0fff);
+    const uint8_t  x    = (op & 0x0f00) >> 8;
+    const uint8_t  y    = (op & 0x00f0) >> 4;
 
 #ifdef DEBUG
     printf("op: 0x%04x\n", op);
@@ -77,12 +78,11 @@ status_t step(vm_t *vm)
     switch(hn)
     {
         case 0x00:
-            //if(ln == 0x00) vm->halt = 1;
             if(ln == 0xe0) memset(vm->screen, 0, sizeof(vm->screen));
             if(ln == 0xee) 
             {
                 if(vm->SP == 0) return ST_STACKUNDERFLOW;
-                vm->PC = pop(vm) - 2;
+                vm->PC = pop(vm);
             }
             break;
         case 0x10:
@@ -211,7 +211,7 @@ status_t step(vm_t *vm)
     if(vm->sound >  0) vm->sound--;
 
     vm->PC+=2;
-    if(vm->PC >= 0x0ffe) vm->halt = 1;
+    if(vm->PC > 0x0ffe) vm->halt = 1;
     return ST_OK;
 }
 

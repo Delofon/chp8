@@ -7,8 +7,8 @@ CNOWARNINGS := -Wno-strict-prototypes -Wno-gnu-binary-literal
 SOURCES := main.c sound.c vm.c
 
 chp8:
-> $(CC) -O3 $(CWARNINGS) $(CNOWARNINGS) $(CFLAGS) $(SOURCES) -o chp8
+> $(CC) -O3 $(CWARNINGS) $(CNOWARNINGS) $(CFLAGS) $(ARGS) $(SOURCES) -o chp8
 
 debug:
-> $(CC) -O0 -g3 -DDEBUG $(CWARNINGS) $(CNOWARNINGS) $(CFLAGS) $(SOURCES) -o chp8
+> $(CC) -O0 -g3 -DDEBUG $(CWARNINGS) $(CNOWARNINGS) $(CFLAGS) $(ARGS) $(SOURCES) -o chp8
 
