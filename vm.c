@@ -162,7 +162,7 @@ status_t step(vm_t *vm)
             if(vm->V[x] != vm->V[y]) vm->PC+=2;
             break;
         case 0xa0:
-            vm->mem[vm->I] = nnn;
+            vm->I = nnn;
             break;
         case 0xb0:
             vm->PC = vm->V[0] + nnn - 2;
