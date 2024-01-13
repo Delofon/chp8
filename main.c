@@ -154,8 +154,7 @@ int main(int argc, char **argv)
     endwin(); 
 
 #ifdef DEBUG
-    FILE *memdump = fopen("memdump", "wb");
-    fwrite(vm.mem, 1, MEMORY_SIZE, memdump);
+    memdump(&vm);
 
     printf("====================\nVM state at the end of execution\n====================\n");
     printf("registers: ");
@@ -201,13 +200,18 @@ int input()
     };
     int ch = getch();
 
+    if(ch == 'h')
+        return HALT_KEYCODE;
+    else if(ch == 'm')
+        return MEMDUMP_KEYCODE;
+
     for(int i = 0; i < 16; i++)
     {
         if(ch == mapping[i]) 
             return i;
     }
 
-    return -1;
+    return NOINP_KEYCODE;
 }
 
 int blockinginput()
@@ -231,8 +235,8 @@ void drawscr(vm_t *vm)
         int x, y;
         itocoord(i, &x, &y);
         move(y, x);
-        if(!vm->screen[i]) printw(" ");
-        else if(vm->screen[i]) printw("0");
+        if(!vm->screen[i]) addch(' ');
+        else if(vm->screen[i]) addch('0');
     }
 }
 
@@ -366,5 +370,12 @@ uint32_t wyhash32()
 uint8_t randint()
 {
     return (uint8_t)wyhash32();
+}
+
+void memdump(vm_t *vm)
+{
+    FILE *memdumpf = fopen("memdump", "wb");
+    fwrite(vm->mem, 1, MEMORY_SIZE, memdumpf);
+    fclose(memdumpf);
 }
 

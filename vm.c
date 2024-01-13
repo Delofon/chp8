@@ -53,26 +53,39 @@ char *exttocstr(extensions_t ext)
 
 status_t step(vm_t *vm)
 {
-    const uint16_t op   = (vm->mem[vm->PC] << 8) | (vm->mem[vm->PC+1]);
-    const uint8_t  hn   = (op & 0xf000) >> 8;
-    const uint8_t  ln   = (op & 0x00ff);
-    const uint8_t  n    = (op & 0x000f);
-    const uint16_t nnn  = (op & 0x0fff);
-    const uint8_t  x    = (op & 0x0f00) >> 8;
-    const uint8_t  y    = (op & 0x00f0) >> 4;
+    uint16_t op   = (vm->mem[vm->PC] << 8) | (vm->mem[vm->PC+1]);
+    uint8_t  hn   = (op & 0xf000) >> 8;
+    uint8_t  ln   = (op & 0x00ff);
+    uint8_t  n    = (op & 0x000f);
+    uint16_t nnn  = (op & 0x0fff);
+    uint8_t  x    = (op & 0x0f00) >> 8;
+    uint8_t  y    = (op & 0x00f0) >> 4;
+
+    int inp = input();
+
+    if(inp == HALT_KEYCODE)
+    {
+        vm->halt = 1;
+        return ST_OK;
+    }
+    else if(inp == MEMDUMP_KEYCODE)
+    {
+        memdump(vm);
+        return ST_OK;
+    }
 
 #ifdef DEBUG
-    printf("op: 0x%04x\n", op);
-    printf("registers: ");
+    fprintf(stderr, "op: 0x%04x\n", op);
+    fprintf(stderr, "registers: ");
     for(int i = 0; i < 16; i++)
     {
-        printf("%d ", vm->V[i]);
+        fprintf(stderr, "%d ", vm->V[i]);
     }
-    printf("\nnnn: %d\n", nnn);
-    printf("PC: 0x%04x\n", vm->PC);
-    printf("SP: 0x%04x\n", vm->SP);
-    printf("I: 0x%04x\n", vm->I);
-    printf("========================\n");
+    fprintf(stderr, "\nnnn: 0x%04x %d\n", nnn, nnn);
+    fprintf(stderr, "PC: 0x%04x\n", vm->PC);
+    fprintf(stderr, "SP: 0x%04x\n", vm->SP);
+    fprintf(stderr, "I: 0x%04x\n", vm->I);
+    fprintf(stderr, "========================\n");
 #endif
 
     switch(hn)
@@ -227,21 +240,36 @@ int coordtoi(int x, int y)
 
 void draw(vm_t *vm, int x, int y, int n)
 {
-    uint8_t *sprite = vm->mem + vm->I;
+    uint8_t *sprite = &vm->mem[vm->I];
     vm->V[15] = 0;
     vm->redrawscreen = 1;
 
+#ifdef DRAW_FPRINTF
+    fprintf(stderr, "--------------------------\n");
+    fprintf(stderr, "Drawing sprite at I 0x%04x\n", vm->I);
+#endif
     for(int v = 0; v < n; v++)
     {
         for(int u = 0; u < 8; u++)
         {
-            uint8_t bit = (sprite[v] >> (7 - u)) & 0x0001;
+            uint8_t bit = (sprite[v] >> (7 - u)) & 0x01;
+#ifdef DRAW_FPRINTF
+            fprintf(stderr, "++++++++++++++++++++++\n");
+            fprintf(stderr, "sprite[v]: 0x%02x\n", sprite[v]);
+            fprintf(stderr, "bit x y: %d %d %d\n", bit, x+u, y+v);
+#endif
             int i = coordtoi(x+u, y+v);
             if(i == -1) continue;
 
             if(vm->screen[i] && bit) vm->V[15] = 1;
             vm->screen[i] ^= bit;
         }
+#ifdef DRAW_FPRINTF
+        fprintf(stderr, "====NEXT ROW====\n");
+#endif
     }
+#ifdef DRAW_FPRINTF
+    fprintf(stderr, "--------------------------\n");
+#endif
 }
 

@@ -9,6 +9,10 @@
 #define SCREEN_SIZE SCREEN_WIDTH * SCREEN_HEIGHT
 #define MEMORY_SIZE 4096
 
+#define NOINP_KEYCODE -1
+#define HALT_KEYCODE -2
+#define MEMDUMP_KEYCODE -3
+
 typedef enum
 {
     CHIP8 = 0,
