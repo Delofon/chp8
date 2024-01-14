@@ -142,6 +142,7 @@ int main(int argc, char **argv)
 
         if(st != ST_OK)
         {
+            resetty();
             endwin();
             fprintf(stderr, "error: virtual machine encountered an error: %s\n", sttocstr(st));
             return 5;
