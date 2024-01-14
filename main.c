@@ -92,7 +92,6 @@ int main(int argc, char **argv)
         return 2;
     }
     memset(vm.mem, 0, MEMORY_SIZE);
-    fprintf(stderr, "vm.mem: 0x%016llx\n", vm.mem);
 
     loadfont(&vm);
 
@@ -133,9 +132,7 @@ int main(int argc, char **argv)
 
     while(!vm.halt)
     {
-#ifdef DEBUG
         if(frame == FRAME_LIM) vm.halt = 1;
-#endif
 
         clock_t start = clock();
 
@@ -182,13 +179,12 @@ int main(int argc, char **argv)
     {
         printf("%d ", vm.V[i]);
     }
-    printf("\nPC: %d\n", vm.PC);
-    printf("SP: %d\n", vm.SP);
-    printf("I:  %d\n", vm.I);
+    printf("\nPC: 0x%04x\n", vm.PC);
+    printf("SP: 0x%04x\n", vm.SP);
+    printf("I: 0x%04x\n", vm.I);
 #endif
 
     paend(s);
-    fprintf(stderr, "vm.mem: 0x%016llx\n", vm.mem);
     free(vm.mem);
     return 0;
 }
@@ -274,10 +270,14 @@ void showinp(int inp)
         mvprintw(50, 0, " ");
 }
 
-void itocoord(int i, int *x, int *y)
+int itocoord(int i, int *x, int *y)
 {
+    if(i < 0) return 0;
+    if(i > SCREEN_SIZE) return 0;
+
     *x = i % SCREEN_WIDTH;
     *y = i / SCREEN_WIDTH;
+    return 1;
 }
 
 void drawscr(vm_t *vm)
@@ -285,7 +285,8 @@ void drawscr(vm_t *vm)
     for(int i = 0; i < SCREEN_SIZE; i++)
     {
         int x, y;
-        itocoord(i, &x, &y);
+        if(!itocoord(i, &x, &y))
+            continue;
         move(y, x);
         if(!vm->screen[i]) addch(' ');
         else if(vm->screen[i]) addch('0');

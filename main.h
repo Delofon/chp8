@@ -9,7 +9,11 @@
 #define TARGET_HZ 60
 #endif
 #ifndef FRAME_LIM
+#ifdef DEBUG
 #define FRAME_LIM 60
+#else
+#define FRAME_LIM -1
+#endif
 #endif
 #define GETCH_HZ 15
 

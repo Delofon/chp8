@@ -10,5 +10,5 @@ chp8:
 > $(CC) -O3 $(CWARNINGS) $(CNOWARNINGS) $(CFLAGS) $(ARGS) $(SOURCES) -o chp8
 
 debug:
-> $(CC) -O0 -g3 -DDEBUG $(CWARNINGS) $(CNOWARNINGS) $(CFLAGS) $(ARGS) $(SOURCES) -o chp8
+> $(CC) -O0 -g3 -DDEBUG $(CWARNINGS) $(CNOWARNINGS) -Wno-format $(CFLAGS) $(ARGS) $(SOURCES) -o chp8
 

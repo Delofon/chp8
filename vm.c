@@ -81,6 +81,7 @@ status_t step(vm_t *vm)
     }
 
     fprintf(stderr, "op: 0x%04x\n", op);
+    fprintf(stderr, "mem: 0x%016llx\n", vm->mem);
     fprintf(stderr, "registers: ");
     for(int i = 0; i < 16; i++)
     {
@@ -214,6 +215,9 @@ status_t step(vm_t *vm)
                     vm->I = vm->V[x]*5; 
                     break;
                 case 0x33:
+#ifdef DEBUG
+                    fprintf(stderr, "sizeof(expr): %d\n", vm->V[x]       % 10);
+#endif
                     vm->mem[vm->I+2] = vm->V[x]       % 10;
                     vm->mem[vm->I+1] = vm->V[x] / 10  % 10;
                     vm->mem[vm->I]   = vm->V[x] / 100 % 10;
@@ -240,9 +244,9 @@ status_t step(vm_t *vm)
 int coordtoi(int x, int y)
 {
     if(x < 0) return -1;
-    if(x > SCREEN_WIDTH) return -1;
+    if(x >= SCREEN_WIDTH) return -1;
     if(y < 0) return -1;
-    if(y > SCREEN_HEIGHT) return -1;
+    if(y >= SCREEN_HEIGHT) return -1;
 
     return x + y * SCREEN_WIDTH;
 }
@@ -253,7 +257,7 @@ void draw(vm_t *vm, int x, int y, int n)
     vm->V[15] = 0;
     vm->redrawscreen = 1;
 
-#ifdef DRAW_FPRINTF
+#ifdef DRAW_FPRINTF_VERBOSE
     fprintf(stderr, "--------------------------\n");
     fprintf(stderr, "Drawing sprite at I 0x%04x\n", vm->I);
 #endif
@@ -262,7 +266,7 @@ void draw(vm_t *vm, int x, int y, int n)
         for(int u = 0; u < 8; u++)
         {
             uint8_t bit = (sprite[v] >> (7 - u)) & 0x01;
-#ifdef DRAW_FPRINTF
+#ifdef DRAW_FPRINTF_VERBOSE
             fprintf(stderr, "++++++++++++++++++++++\n");
             fprintf(stderr, "sprite[v]: 0x%02x\n", sprite[v]);
             fprintf(stderr, "bit x y: %d %d %d\n", bit, x+u, y+v);
@@ -273,11 +277,11 @@ void draw(vm_t *vm, int x, int y, int n)
             if(vm->screen[i] && bit) vm->V[15] = 1;
             vm->screen[i] ^= bit;
         }
-#ifdef DRAW_FPRINTF
+#ifdef DRAW_FPRINTF_VERBOSE
         fprintf(stderr, "====NEXT ROW====\n");
 #endif
     }
-#ifdef DRAW_FPRINTF
+#ifdef DRAW_FPRINTF_VERBOSE
     fprintf(stderr, "--------------------------\n");
 #endif
 }
