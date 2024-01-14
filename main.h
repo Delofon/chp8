@@ -11,6 +11,7 @@
 #ifndef FRAMELIM
 #define FRAMELIM 60
 #endif
+#define GETCH_HZ 15
 
 int input();
 int blockinginput();

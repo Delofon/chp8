@@ -117,7 +117,7 @@ int main(int argc, char **argv)
 #endif
     
     savetty();
-    int curstate = curs_set(0);
+    curs_set(0);
     cbreak();
     noecho();
     nodelay(stdscr, true);
@@ -137,6 +137,7 @@ int main(int argc, char **argv)
 #endif
 
         clock_t start = clock();
+
         status_t st = step(&vm);
 
         if(st != ST_OK)
@@ -153,7 +154,18 @@ int main(int argc, char **argv)
             vm.redrawscreen = 0;
         }
 
-        usleep((start + target - clock()) * 1000000 / CLOCKS_PER_SEC);
+        // note:
+        // struct timespec ts;
+        // clock_gettime(CLOCK_MONOTONIC, &ts);
+        // long start = ts.tv_nsec; long target = 1000000000l / TARGET_HZ;
+        // long now = ts.tv_nsec;
+        //
+        //usleep((start + target - now) / 1000);
+        
+        // TODO: find something better as this has 100% cpu load
+        // using timespec as described above produces weird issues
+        // clock() combined with usleep doesn't produce expected results
+        while(clock() - start < target);
         frame++;
     }
 
@@ -184,6 +196,26 @@ void pabeep()
     paplay(s, 440, 1000);
 }
 
+// TODO: same issues as above with clock() and usleep
+int getch_bf = ERR;
+clock_t getch_buf_cl = 0;
+const clock_t getch_buf_cl_target = CLOCKS_PER_SEC / GETCH_HZ;
+int getch_buf()
+{
+    clock_t cl = clock();
+
+    //mvprintw(51, 0, "getch_buf_cl cl getch_buf_cl_target: %ld %ld %ld %lu", getch_buf_cl, cl, getch_buf_cl_target, sizeof(long));
+    // TODO: why is getch_bf == ERR needed here?
+    if(getch_bf == ERR || cl - getch_buf_cl >= getch_buf_cl_target)
+    {
+        //mvprintw(52,0,"getch_bf getch_bf_new: %d ", getch_bf);
+        getch_buf_cl = cl;
+        getch_bf = getch();
+        //printw("%d", getch_bf);
+    }
+    return getch_bf;
+}
+
 int input()
 {
     const int mapping[16] =
@@ -205,7 +237,7 @@ int input()
         'f',
         'v'
     };
-    int ch = getch();
+    int ch = getch_buf();
     flushinp();
 
     if(ch == ERR)
