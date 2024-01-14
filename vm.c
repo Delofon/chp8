@@ -30,6 +30,9 @@ char *sttocstr(status_t st)
         case ST_STACKUNDERFLOW:
             return "ST_STACKUNDERFLOW";
             break;
+        case ST_OP_UNDEFINED:
+            return "ST_OP_UNDEFINED";
+            break;
     }
     return "ST_UNKNOWN";
 }
@@ -62,6 +65,9 @@ status_t step(vm_t *vm)
     uint8_t  y    = (op & 0x00f0) >> 4;
 
     int8_t inp = input();
+
+    uint8_t *shift;
+    uint8_t *store = &vm->V[x];
 
     if(inp == HALT_KEYCODE)
     {
@@ -155,16 +161,28 @@ status_t step(vm_t *vm)
                     vm->V[x] -= vm->V[y];
                     break;
                 case 0x06:
-                    vm->V[15] = vm->V[x] & 0x01;
-                    vm->V[x] >>= 1;
+                    if(vm->extensions == CHIP8)
+                        shift = &vm->V[y];
+                    else if(vm->extensions == SCHIP)
+                        shift = &vm->V[x];
+                    else
+                        return ST_OP_UNDEFINED;
+                    vm->V[15] = *shift & 0x01;
+                    *store = *shift >> 1;
                     break;
                 case 0x07:
                     if(vm->V[y] > 0 && vm->V[x] < UINT8_MAX + vm->V[y]) vm->V[15] = 1;
                     vm->V[x] = vm->V[y] - vm->V[x];
                     break;
                 case 0x0e:
-                    vm->V[15] = vm->V[x] & 0x10;
-                    vm->V[x] <<= 1;
+                    if(vm->extensions == CHIP8)
+                        shift = &vm->V[y];
+                    else if(vm->extensions == SCHIP)
+                        shift = &vm->V[x];
+                    else
+                        return ST_OP_UNDEFINED;
+                    vm->V[15] = *shift & 0x10;
+                    *store = *shift << 1;
                     break;
             }
             break;
@@ -224,9 +242,19 @@ status_t step(vm_t *vm)
                     break;
                 case 0x55:
                     memcpy(vm->mem+vm->I, &vm->V, x+1);
+                    if(vm->extensions == CHIP8)
+                        vm->I += x + 1;
+                    else if(vm->extensions == SCHIP);
+                    else
+                        return ST_OP_UNDEFINED;
                     break;
                 case 0x65:
                     memcpy(&vm->V, vm->mem+vm->I, x+1);
+                    if(vm->extensions == CHIP8)
+                        vm->I += x + 1;
+                    else if(vm->extensions == SCHIP);
+                    else
+                        return ST_OP_UNDEFINED;
                     break;
             }
             break;

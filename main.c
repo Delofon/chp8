@@ -273,7 +273,7 @@ void showinp(int inp)
 int itocoord(int i, int *x, int *y)
 {
     if(i < 0) return 0;
-    if(i > SCREEN_SIZE) return 0;
+    if(i >= SCREEN_SIZE) return 0;
 
     *x = i % SCREEN_WIDTH;
     *y = i / SCREEN_WIDTH;

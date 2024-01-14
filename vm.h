@@ -6,7 +6,7 @@
 #define STACK_SIZE 64
 #define SCREEN_WIDTH 64
 #define SCREEN_HEIGHT 32
-#define SCREEN_SIZE SCREEN_WIDTH * SCREEN_HEIGHT
+#define SCREEN_SIZE (SCREEN_WIDTH * SCREEN_HEIGHT)
 #define MEMORY_SIZE 4096
 
 #define NOINP_KEYCODE -1
@@ -43,7 +43,9 @@ typedef enum
 {
     ST_OK = 0,
     ST_STACKOVERFLOW,
-    ST_STACKUNDERFLOW
+    ST_STACKUNDERFLOW,
+
+    ST_OP_UNDEFINED
 } status_t;
 
 uint16_t pop(vm_t *vm);
