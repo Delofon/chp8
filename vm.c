@@ -108,11 +108,13 @@ status_t step(vm_t *vm)
     {
         case 0x00:
             if(ln == 0xe0) memset(vm->screen, 0, sizeof(vm->screen));
-            if(ln == 0xee) 
+            else if(ln == 0xee) 
             {
                 if(vm->SP == 0) return ST_STACKUNDERFLOW;
                 vm->PC = pop(vm);
             }
+            else
+                return ST_OP_UNDEFINED;
             break;
         case 0x10:
             vm->PC = nnn - 2;
@@ -184,6 +186,9 @@ status_t step(vm_t *vm)
                     vm->V[15] = *shift & 0x10;
                     *store = *shift << 1;
                     break;
+                default:
+                    return ST_OP_UNDEFINED;
+                    break;
             }
             break;
         case 0x90:
@@ -210,6 +215,8 @@ status_t step(vm_t *vm)
             {
                 if(inp != vm->V[x]) vm->PC+=2;
             }
+            else
+                return ST_OP_UNDEFINED;
             break;
         case 0xf0:
             switch(ln)
@@ -256,7 +263,13 @@ status_t step(vm_t *vm)
                     else
                         return ST_OP_UNDEFINED;
                     break;
+                default:
+                    return ST_OP_UNDEFINED;
+                    break;
             }
+            break;
+        default:
+            return ST_OP_UNDEFINED;
             break;
     }
 
@@ -285,32 +298,17 @@ void draw(vm_t *vm, int x, int y, int n)
     vm->V[15] = 0;
     vm->redrawscreen = 1;
 
-#ifdef DRAW_FPRINTF_VERBOSE
-    fprintf(stderr, "--------------------------\n");
-    fprintf(stderr, "Drawing sprite at I 0x%04x\n", vm->I);
-#endif
     for(int v = 0; v < n; v++)
     {
         for(int u = 0; u < 8; u++)
         {
             uint8_t bit = (sprite[v] >> (7 - u)) & 0x01;
-#ifdef DRAW_FPRINTF_VERBOSE
-            fprintf(stderr, "++++++++++++++++++++++\n");
-            fprintf(stderr, "sprite[v]: 0x%02x\n", sprite[v]);
-            fprintf(stderr, "bit x y: %d %d %d\n", bit, x+u, y+v);
-#endif
             int i = coordtoi(x+u, y+v);
             if(i == -1) continue;
 
             if(vm->screen[i] && bit) vm->V[15] = 1;
             vm->screen[i] ^= bit;
         }
-#ifdef DRAW_FPRINTF_VERBOSE
-        fprintf(stderr, "====NEXT ROW====\n");
-#endif
     }
-#ifdef DRAW_FPRINTF_VERBOSE
-    fprintf(stderr, "--------------------------\n");
-#endif
 }
 

@@ -1,4 +1,6 @@
 chp8
-*.ch8
 memdump
+
+*.rom
+*.ch8
 
