@@ -61,7 +61,7 @@ status_t step(vm_t *vm)
     uint8_t  x    = (op & 0x0f00) >> 8;
     uint8_t  y    = (op & 0x00f0) >> 4;
 
-    int inp = input();
+    int8_t inp = input();
 
     if(inp == HALT_KEYCODE)
     {

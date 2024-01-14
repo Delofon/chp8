@@ -92,6 +92,7 @@ int main(int argc, char **argv)
         return 2;
     }
     memset(vm.mem, 0, MEMORY_SIZE);
+    fprintf(stderr, "vm.mem: 0x%016llx\n", vm.mem);
 
     loadfont(&vm);
 
@@ -133,7 +134,7 @@ int main(int argc, char **argv)
     while(!vm.halt)
     {
 #ifdef DEBUG
-        if(frame == FRAMELIM) vm.halt = 1;
+        if(frame == FRAME_LIM) vm.halt = 1;
 #endif
 
         clock_t start = clock();
@@ -160,12 +161,11 @@ int main(int argc, char **argv)
         // clock_gettime(CLOCK_MONOTONIC, &ts);
         // long start = ts.tv_nsec; long target = 1000000000l / TARGET_HZ;
         // long now = ts.tv_nsec;
-        //
-        //usleep((start + target - now) / 1000);
+        // usleep((start + target - now) / 1000);
         
         // TODO: find something better as this has 100% cpu load
         // using timespec as described above produces weird issues
-        // clock() combined with usleep doesn't produce expected results
+        // clock() combined with usleep does not produce desired results
         while(clock() - start < target);
         frame++;
     }
@@ -188,6 +188,7 @@ int main(int argc, char **argv)
 #endif
 
     paend(s);
+    fprintf(stderr, "vm.mem: 0x%016llx\n", vm.mem);
     free(vm.mem);
     return 0;
 }
@@ -217,7 +218,7 @@ int getch_buf()
     return getch_bf;
 }
 
-int input()
+int8_t input()
 {
     const int mapping[16] =
     { 
@@ -248,7 +249,7 @@ int input()
     else if(ch == 'm')
         return MEMDUMP_KEYCODE;
 
-    for(int i = 0; i < 16; i++)
+    for(int8_t i = 0; i < 16; i++)
     {
         if(ch == mapping[i]) 
             return i;
@@ -257,10 +258,10 @@ int input()
     return NOINP_KEYCODE;
 }
 
-int blockinginput()
+int8_t blockinginput()
 {
     nodelay(stdscr, false);
-    int inp = input();
+    int8_t inp = input();
     nodelay(stdscr, true);
     return inp;
 }
