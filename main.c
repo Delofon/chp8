@@ -119,7 +119,11 @@ int main(int argc, char **argv)
     noecho();
     nodelay(stdscr, true);
 
-    clock_t target = CLOCKS_PER_SEC / TARGET_HZ;
+    clock_t target;
+    if(TARGET_HZ == 0)
+        target = 0;
+    else
+        target = CLOCKS_PER_SEC / TARGET_HZ;
 
     uint64_t frame = 0;
 

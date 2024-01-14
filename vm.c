@@ -75,6 +75,11 @@ status_t step(vm_t *vm)
     }
 
 #ifdef DEBUG
+    if(inp != NOINP_KEYCODE)
+    {
+        fprintf(stderr, "received keycode: 0x%01x\n", inp);
+    }
+
     fprintf(stderr, "op: 0x%04x\n", op);
     fprintf(stderr, "registers: ");
     for(int i = 0; i < 16; i++)
