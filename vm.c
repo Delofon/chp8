@@ -93,6 +93,10 @@ status_t step(vm_t *vm)
     fprintf(stderr, "========================\n");
 #endif
 
+#ifdef TESTNBLINP
+    showinp(inp);
+#endif
+
     switch(hn)
     {
         case 0x00:

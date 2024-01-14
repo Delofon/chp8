@@ -14,6 +14,7 @@
 
 int input();
 int blockinginput();
+void showinp(int inp);
 void pabeep();
 uint8_t randint();
 void memdump(vm_t *vm);

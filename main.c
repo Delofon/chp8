@@ -36,6 +36,7 @@ int main(int argc, char **argv)
 
     extensions_t extensions = CHIP8;
     int opt;
+    // TODO: use getopt_long
     while((opt = getopt(argc, argv, "e:")) != -1)
     {
         switch(opt)
@@ -115,6 +116,7 @@ int main(int argc, char **argv)
     initscr();
 #endif
     
+    savetty();
     int curstate = curs_set(0);
     cbreak();
     noecho();
@@ -155,7 +157,7 @@ int main(int argc, char **argv)
         frame++;
     }
 
-    curs_set(curstate);
+    resetty();
     endwin(); 
 
 #ifdef DEBUG
@@ -228,6 +230,14 @@ int blockinginput()
     int inp = input();
     nodelay(stdscr, true);
     return inp;
+}
+
+void showinp(int inp)
+{
+    if(inp != NOINP_KEYCODE)
+        mvprintw(50, 0, "%c", inp+'0');
+    else
+        mvprintw(50, 0, " ");
 }
 
 void itocoord(int i, int *x, int *y)
