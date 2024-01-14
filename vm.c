@@ -108,7 +108,7 @@ status_t step(vm_t *vm)
     {
         case 0x00:
             if(ln == 0xe0) memset(vm->screen, 0, sizeof(vm->screen));
-            else if(ln == 0xee) 
+            else if(ln == 0xee)
             {
                 if(vm->SP == 0) return ST_STACKUNDERFLOW;
                 vm->PC = pop(vm);
@@ -240,9 +240,6 @@ status_t step(vm_t *vm)
                     vm->I = vm->V[x]*5; 
                     break;
                 case 0x33:
-#ifdef DEBUG
-                    fprintf(stderr, "sizeof(expr): %d\n", vm->V[x]       % 10);
-#endif
                     vm->mem[vm->I+2] = vm->V[x]       % 10;
                     vm->mem[vm->I+1] = vm->V[x] / 10  % 10;
                     vm->mem[vm->I]   = vm->V[x] / 100 % 10;
