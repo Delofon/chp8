@@ -181,11 +181,11 @@ status_t step(vm_t *vm)
         case 0xe0:
             if(ln == 0x9e)
             {
-                if(input() == vm->V[x]) vm->PC+=2;
+                if(inp == vm->V[x]) vm->PC+=2;
             }
             else if(ln == 0xa1)
             {
-                if(input() != vm->V[x]) vm->PC+=2;
+                if(inp != vm->V[x]) vm->PC+=2;
             }
             break;
         case 0xf0:

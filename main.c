@@ -116,6 +116,7 @@ int main(int argc, char **argv)
 #endif
     
     int curstate = curs_set(0);
+    cbreak();
     noecho();
     nodelay(stdscr, true);
 
@@ -150,7 +151,7 @@ int main(int argc, char **argv)
             vm.redrawscreen = 0;
         }
 
-        while(clock() - start < target);
+        usleep((start + target - clock()) * 1000000 / CLOCKS_PER_SEC);
         frame++;
     }
 
@@ -160,7 +161,7 @@ int main(int argc, char **argv)
 #ifdef DEBUG
     memdump(&vm);
 
-    printf("====================\nVM state at the end of execution\n====================\n");
+    printf("VM state at the end of execution\n--------------------\n");
     printf("registers: ");
     for(int i = 0; i < 16; i++)
     {
@@ -203,8 +204,11 @@ int input()
         'v'
     };
     int ch = getch();
+    flushinp();
 
-    if(ch == 'h')
+    if(ch == ERR)
+        return NOINP_KEYCODE;
+    else if(ch == 'h')
         return HALT_KEYCODE;
     else if(ch == 'm')
         return MEMDUMP_KEYCODE;
