@@ -36,7 +36,7 @@ int paplay(pa_simple *s, int freq, int duration)
 int paend(pa_simple *s)
 {
     int paerror = 0;
-    pa_simple_drain(s, &paerror);
+    //pa_simple_drain(s, &paerror);
     if(paerror != PA_OK) return paerror;
     pa_simple_free(s);
     return 0;
