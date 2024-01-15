@@ -273,9 +273,9 @@ void drawscr(vm_t *vm)
         int x, y;
         if(!itocoord(i, &x, &y))
             continue;
-        move(y, x);
-        if(!vm->screen[i]) addch(' ');
-        else if(vm->screen[i]) addch('0');
+        move(y, x*2);
+        if(!vm->screen[i]) printw("  ");
+        else if(vm->screen[i]) printw("00");
     }
 }
 
