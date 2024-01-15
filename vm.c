@@ -2,10 +2,10 @@
 #include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
-#include <time.h>
 
 #include "main.h"
 #include "vm.h"
+#include "timing.h"
 
 uint16_t pop(vm_t *vm)
 {
@@ -266,11 +266,11 @@ status_t step(vm_t *vm)
             break;
     }
 
-    clock_t now = clock();
+    timing_t tnow = now();
 
-    if(now - vm->dstart >= CLOCKS_PER_SEC / DELAY_HZ)
+    if(tnow - vm->dstart >= hztotiming(DELAY_HZ))
     {
-        vm->dstart = now;
+        vm->dstart = tnow;
         if(vm->sound == 1) pabeep();
         if(vm->delay >  0) vm->delay--;
         if(vm->sound >  0) vm->sound--;

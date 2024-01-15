@@ -6,11 +6,11 @@
 #include <stdint.h>
 #include <errno.h>
 #include <string.h>
-#include <time.h>
 #include <ncurses.h>
 
 #include "main.h"
 #include "vm.h"
+#include "timing.h"
 #include "sound.h"
 
 void drawscr(vm_t *vm);
@@ -122,11 +122,7 @@ int main(int argc, char **argv)
     noecho();
     nodelay(stdscr, true);
 
-    clock_t target;
-    if(TARGET_HZ == 0)
-        target = 0;
-    else
-        target = CLOCKS_PER_SEC / TARGET_HZ;
+    const timing_t target = hztotiming(TARGET_HZ);
 
     uint64_t frame = 0;
 
@@ -134,7 +130,7 @@ int main(int argc, char **argv)
     {
         if(frame == FRAME_LIM) vm.halt = 1;
 
-        vm.fstart = clock();
+        timing_t start = now();
 
         status_t st = step(&vm);
 
@@ -153,17 +149,7 @@ int main(int argc, char **argv)
             vm.redrawscreen = 0;
         }
 
-        // note:
-        // struct timespec ts;
-        // clock_gettime(CLOCK_MONOTONIC, &ts);
-        // long start = ts.tv_nsec; long target = 1000000000l / TARGET_HZ;
-        // long now = ts.tv_nsec;
-        // usleep((start + target - now) / 1000);
-        
-        // TODO: find something better as this has 100% cpu load
-        // using timespec as described above produces weird issues
-        // clock() combined with usleep does not produce desired results
-        while(clock() - vm.fstart < target);
+        sleepuntil(start, target);
         frame++;
     }
 
@@ -194,22 +180,18 @@ void pabeep()
     paplay(s, 440, 1000);
 }
 
-// TODO: same issues as above with clock() and usleep
 int getch_bf = ERR;
-clock_t getch_buf_cl = 0;
-const clock_t getch_buf_cl_target = CLOCKS_PER_SEC / GETCH_HZ;
+timing_t getch_buf_cl = 0;
 int getch_buf()
 {
-    clock_t cl = clock();
+    const timing_t getch_buf_cl_target = hztotiming(GETCH_HZ);
+    timing_t cl = now();
 
-    //mvprintw(51, 0, "getch_buf_cl cl getch_buf_cl_target: %ld %ld %ld %lu", getch_buf_cl, cl, getch_buf_cl_target, sizeof(long));
     // TODO: why is getch_bf == ERR needed here?
     if(getch_bf == ERR || cl - getch_buf_cl >= getch_buf_cl_target)
     {
-        //mvprintw(52,0,"getch_bf getch_bf_new: %d ", getch_bf);
         getch_buf_cl = cl;
         getch_bf = getch();
-        //printw("%d", getch_bf);
     }
     return getch_bf;
 }

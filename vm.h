@@ -4,6 +4,8 @@
 #include <stdint.h>
 #include <time.h>
 
+#include "timing.h"
+
 #define STACK_SIZE 64
 #define SCREEN_WIDTH 64
 #define SCREEN_HEIGHT 32
@@ -39,8 +41,8 @@ typedef struct _vm_t
     uint8_t delay;
     uint8_t sound;
 
-    clock_t fstart;
-    clock_t dstart;
+    timing_t fstart;
+    timing_t dstart;
 
     uint8_t redrawscreen;
 } vm_t;
