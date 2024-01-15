@@ -155,12 +155,15 @@ status_t step(vm_t *vm)
                     vm->V[x] = vm->V[y];
                     break;
                 case 0x01:
+                    if(vm->extensions == CHIP8) vm->V[15] = 0;
                     vm->V[x] |= vm->V[y];
                     break;
                 case 0x02:
+                    if(vm->extensions == CHIP8) vm->V[15] = 0;
                     vm->V[x] &= vm->V[y];
                     break;
                 case 0x03:
+                    if(vm->extensions == CHIP8) vm->V[15] = 0;
                     vm->V[x] ^= vm->V[y];
                     break;
                 case 0x04:
