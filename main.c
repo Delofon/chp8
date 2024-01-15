@@ -134,7 +134,7 @@ int main(int argc, char **argv)
     {
         if(frame == FRAME_LIM) vm.halt = 1;
 
-        clock_t start = clock();
+        vm.fstart = clock();
 
         status_t st = step(&vm);
 
@@ -163,7 +163,7 @@ int main(int argc, char **argv)
         // TODO: find something better as this has 100% cpu load
         // using timespec as described above produces weird issues
         // clock() combined with usleep does not produce desired results
-        while(clock() - start < target);
+        while(clock() - vm.fstart < target);
         frame++;
     }
 

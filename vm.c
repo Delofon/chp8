@@ -2,6 +2,7 @@
 #include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
+#include <time.h>
 
 #include "main.h"
 #include "vm.h"
@@ -81,11 +82,6 @@ status_t step(vm_t *vm)
     }
 
 #ifdef DEBUG
-    if(inp != NOINP_KEYCODE)
-    {
-        fprintf(stderr, "received keycode: 0x%01x\n", inp);
-    }
-
     fprintf(stderr, "op: 0x%04x\n", op);
     fprintf(stderr, "mem: 0x%016llx\n", vm->mem);
     fprintf(stderr, "registers: ");
@@ -183,7 +179,7 @@ status_t step(vm_t *vm)
                         shift = &vm->V[x];
                     else
                         return ST_OP_UNDEFINED;
-                    vm->V[15] = *shift & 0x10;
+                    vm->V[15] = (*shift & 0x80) >> 4;
                     *store = *shift << 1;
                     break;
                 default:
@@ -270,9 +266,15 @@ status_t step(vm_t *vm)
             break;
     }
 
-    if(vm->delay >  0) vm->delay--;
-    if(vm->sound == 1) pabeep();
-    if(vm->sound >  0) vm->sound--;
+    clock_t now = clock();
+
+    if(now - vm->dstart >= CLOCKS_PER_SEC / DELAY_HZ)
+    {
+        vm->dstart = now;
+        if(vm->sound == 1) pabeep();
+        if(vm->delay >  0) vm->delay--;
+        if(vm->sound >  0) vm->sound--;
+    }
 
     vm->PC+=2;
     if(vm->PC > 0x0ffe) vm->halt = 1;
