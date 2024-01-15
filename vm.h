@@ -9,8 +9,14 @@
 #define STACK_SIZE 64
 #define SCREEN_WIDTH 64
 #define SCREEN_HEIGHT 32
+#define SCREEN_WIDTH_HIRES 128
+#define SCREEN_HEIGHT_HIRES 64
 #define SCREEN_SIZE (SCREEN_WIDTH * SCREEN_HEIGHT)
+#define SCREEN_SIZE_HIRES (SCREEN_WIDTH_HIRES * SCREEN_HEIGHT_HIRES)
 #define MEMORY_SIZE 4096
+
+#define LORES 0
+#define HIRES 1
 
 #define NOINP_KEYCODE -1
 #define HALT_KEYCODE -2
@@ -37,6 +43,8 @@ typedef struct _vm_t
     uint16_t PC;
     uint16_t SP;
     uint16_t op;
+
+    uint8_t graphicsmode;
     uint8_t halt;
 
     uint8_t delay;

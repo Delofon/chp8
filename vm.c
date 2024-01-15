@@ -134,11 +134,29 @@ status_t step(vm_t *vm)
     switch(hn)
     {
         case 0x00:
-            if(ln == 0xe0) memset(vm->screen, 0, sizeof(vm->screen));
+            if(ln == 0xe0)
+                memset(vm->screen, 0, sizeof(vm->screen));
             else if(ln == 0xee)
             {
                 if(vm->SP == 0) return ST_STACKUNDERFLOW;
                 vm->PC = pop(vm);
+            }
+            else if(vm->extensions > CHIP8)
+            {
+                if(ln == 0xff)
+                    vm->graphicsmode = HIRES;
+                else if(ln == 0xfe)
+                    vm->graphicsmode = LORES;
+                else if((ln & 0xf0) == 0xc0);
+                    // TODO
+                else if(ln == 0xfb);
+                    // TODO
+                else if(ln == 0xfc);
+                    // TODO
+                else if(ln == 0xfd)
+                    vm->halt = 1;
+                else
+                    return ST_OP_UNDEFINED;
             }
             else
                 return ST_OP_UNDEFINED;
@@ -239,6 +257,9 @@ status_t step(vm_t *vm)
             vm->V[x] = randint() & ln;
             break;
         case 0xd0:
+            if(vm->extensions > CHIP8 && n == 0)
+                n = 16;
+
             if(!testsegfault(vm->I, vm))
                 return ST_SEGFAULT;
             if(!testsegfault(vm->I+n, vm))
@@ -279,6 +300,11 @@ status_t step(vm_t *vm)
                 case 0x29:
                     vm->I = vm->V[x]*5; 
                     break;
+                case 0x30:
+                    if(vm->extensions == CHIP8)
+                        return ST_OP_UNDEFINED;
+                    // TODO
+                    break;
                 case 0x33:
                     if(!testsegfault(vm->I, vm))
                         return ST_SEGFAULT;
@@ -312,6 +338,16 @@ status_t step(vm_t *vm)
                     else if(vm->extensions == SCHIP);
                     else
                         return ST_QUIRK_UNDEFINED;
+                    break;
+                case 0x75:
+                    if(vm->extensions == CHIP8)
+                        return ST_OP_UNDEFINED;
+                    // TODO
+                    break;
+                case 0x85:
+                    if(vm->extensions == CHIP8)
+                        return ST_OP_UNDEFINED;
+                    // TODO
                     break;
                 default:
                     return ST_OP_UNDEFINED;
@@ -350,6 +386,9 @@ int coordtoi(int x, int y)
 
 void draw(vm_t *vm, int x, int y, int n)
 {
+    if(n == 16)
+        return;
+
     uint8_t *sprite = &vm->mem[vm->I];
     vm->V[15] = 0;
     vm->redrawscreen = 1;
