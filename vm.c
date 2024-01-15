@@ -184,12 +184,6 @@ status_t step(vm_t *vm)
                     else
                         return ST_OP_UNDEFINED;
                     vm->V[15] = *shift & 0x01;
-#ifdef DEBUG
-                    fprintf(stderr, "RR\n");
-                    fprintf(stderr, "vm->V[x]: 0x%02x\n", vm->V[x]);
-                    fprintf(stderr, "vm->V[y]: 0x%02x\n", vm->V[y]);
-                    fprintf(stderr, "vm->V[15]: 0x%02x\n", vm->V[15]);
-#endif
                     *store = *shift >> 1;
                     break;
                 case 0x07:
@@ -205,12 +199,6 @@ status_t step(vm_t *vm)
                     else
                         return ST_OP_UNDEFINED;
                     vm->V[15] = *shift >> 7;
-#ifdef DEBUG
-                    fprintf(stderr, "RL\n");
-                    fprintf(stderr, "vm->V[x]: 0x%02x\n", vm->V[x]);
-                    fprintf(stderr, "vm->V[y]: 0x%02x\n", vm->V[y]);
-                    fprintf(stderr, "vm->V[15]: 0x%02x\n", vm->V[15]);
-#endif
                     *store = *shift << 1;
                     break;
                 default:
