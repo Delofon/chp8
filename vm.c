@@ -297,6 +297,9 @@ void draw(vm_t *vm, int x, int y, int n)
     vm->V[15] = 0;
     vm->redrawscreen = 1;
 
+    x %= SCREEN_WIDTH;
+    y %= SCREEN_HEIGHT;
+
     for(int v = 0; v < n; v++)
     {
         for(int u = 0; u < 8; u++)
