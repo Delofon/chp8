@@ -15,7 +15,7 @@
 #define FRAME_LIM -1
 #endif
 #endif
-#define GETCH_HZ 15
+#define GETCH_HZ 10
 
 int8_t input();
 int8_t blockinginput();

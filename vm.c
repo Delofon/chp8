@@ -55,6 +55,15 @@ char *exttocstr(extensions_t ext)
     return "UNKNOWN";
 }
 
+uint8_t testaddoverflow(uint8_t a, uint8_t b)
+{
+    return b > UINT8_MAX - a;
+}
+uint8_t testsubunderflow(uint8_t a, uint8_t b)
+{
+    return a < b;
+}
+
 status_t step(vm_t *vm)
 {
     uint16_t op   = (vm->mem[vm->PC] << 8) | (vm->mem[vm->PC+1]);
@@ -70,6 +79,10 @@ status_t step(vm_t *vm)
     uint8_t *shift;
     uint8_t *store = &vm->V[x];
 
+    uint8_t flag = 0;
+
+    vm->op = op;
+
     if(inp == HALT_KEYCODE)
     {
         vm->halt = 1;
@@ -82,6 +95,7 @@ status_t step(vm_t *vm)
     }
 
 #ifdef DEBUG
+    fprintf(stderr, "========================\n");
     fprintf(stderr, "op: 0x%04x\n", op);
     fprintf(stderr, "mem: 0x%016llx\n", vm->mem);
     fprintf(stderr, "registers: ");
@@ -93,7 +107,6 @@ status_t step(vm_t *vm)
     fprintf(stderr, "PC: 0x%04x\n", vm->PC);
     fprintf(stderr, "SP: 0x%04x\n", vm->SP);
     fprintf(stderr, "I: 0x%04x\n", vm->I);
-    fprintf(stderr, "========================\n");
 #endif
 
 #ifdef TESTNBLINP
@@ -151,12 +164,14 @@ status_t step(vm_t *vm)
                     vm->V[x] ^= vm->V[y];
                     break;
                 case 0x04:
-                    if(vm->V[x] > 0 && vm->V[y] > UINT8_MAX - vm->V[x]) vm->V[15] = 1;
+                    flag = testaddoverflow(vm->V[x], vm->V[y]);
                     vm->V[x] += vm->V[y];
+                    vm->V[15] = flag;
                     break;
                 case 0x05:
-                    if(vm->V[x] > 0 && vm->V[y] < UINT8_MAX + vm->V[x]) vm->V[15] = 1;
+                    flag = !testsubunderflow(vm->V[x], vm->V[y]);
                     vm->V[x] -= vm->V[y];
+                    vm->V[15] = flag;
                     break;
                 case 0x06:
                     if(vm->extensions == CHIP8)
@@ -166,11 +181,18 @@ status_t step(vm_t *vm)
                     else
                         return ST_OP_UNDEFINED;
                     vm->V[15] = *shift & 0x01;
+#ifdef DEBUG
+                    fprintf(stderr, "RR\n");
+                    fprintf(stderr, "vm->V[x]: 0x%02x\n", vm->V[x]);
+                    fprintf(stderr, "vm->V[y]: 0x%02x\n", vm->V[y]);
+                    fprintf(stderr, "vm->V[15]: 0x%02x\n", vm->V[15]);
+#endif
                     *store = *shift >> 1;
                     break;
                 case 0x07:
-                    if(vm->V[y] > 0 && vm->V[x] < UINT8_MAX + vm->V[y]) vm->V[15] = 1;
+                    flag = !testsubunderflow(vm->V[y], vm->V[x]);
                     vm->V[x] = vm->V[y] - vm->V[x];
+                    vm->V[15] = flag;
                     break;
                 case 0x0e:
                     if(vm->extensions == CHIP8)
@@ -179,7 +201,13 @@ status_t step(vm_t *vm)
                         shift = &vm->V[x];
                     else
                         return ST_OP_UNDEFINED;
-                    vm->V[15] = (*shift & 0x80) >> 4;
+                    vm->V[15] = *shift >> 7;
+#ifdef DEBUG
+                    fprintf(stderr, "RL\n");
+                    fprintf(stderr, "vm->V[x]: 0x%02x\n", vm->V[x]);
+                    fprintf(stderr, "vm->V[y]: 0x%02x\n", vm->V[y]);
+                    fprintf(stderr, "vm->V[15]: 0x%02x\n", vm->V[15]);
+#endif
                     *store = *shift << 1;
                     break;
                 default:

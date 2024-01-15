@@ -138,7 +138,11 @@ int main(int argc, char **argv)
         {
             resetty();
             endwin();
+            
             fprintf(stderr, "error: virtual machine encountered an error: %s\n", sttocstr(st));
+            fprintf(stderr, "error occured at PC with op: 0x%04x 0x%04x\n", vm.PC, vm.op);
+            fprintf(stderr, "extensions used: %s\n", exttocstr(vm.extensions));
+            memdump(&vm);
             return 5;
         }
 

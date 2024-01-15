@@ -36,6 +36,7 @@ typedef struct _vm_t
     uint16_t I;
     uint16_t PC;
     uint16_t SP;
+    uint16_t op;
     uint8_t halt;
 
     uint8_t delay;
