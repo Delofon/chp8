@@ -51,9 +51,12 @@ typedef struct _vm_t
 typedef enum
 {
     ST_OK = 0,
+
     ST_STACKOVERFLOW,
     ST_STACKUNDERFLOW,
+    ST_SEGFAULT,
 
+    ST_QUIRK_UNDEFINED,
     ST_OP_UNDEFINED
 } status_t;
 

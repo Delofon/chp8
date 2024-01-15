@@ -25,11 +25,19 @@ char *sttocstr(status_t st)
         case ST_OK:
             return "ST_OK";
             break;
+
         case ST_STACKOVERFLOW:
             return "ST_STACKOVERFLOW";
             break;
         case ST_STACKUNDERFLOW:
             return "ST_STACKUNDERFLOW";
+            break;
+        case ST_SEGFAULT:
+            return "ST_SEGFAULT";
+            break;
+
+        case ST_QUIRK_UNDEFINED:
+            return "ST_QUIRK_UNDEFINED";
             break;
         case ST_OP_UNDEFINED:
             return "ST_OP_UNDEFINED";
@@ -64,8 +72,19 @@ uint8_t testsubunderflow(uint8_t a, uint8_t b)
     return a < b;
 }
 
+uint8_t testsegfault(uint16_t memptr, vm_t *vm)
+{
+    if(vm->mem+memptr >= vm->mem + MEMORY_SIZE)
+        return 0;
+
+    return 1;
+}
+
 status_t step(vm_t *vm)
 {
+    if(!testsegfault(vm->PC, vm))
+        return ST_SEGFAULT;
+
     uint16_t op   = (vm->mem[vm->PC] << 8) | (vm->mem[vm->PC+1]);
     uint8_t  hn   = (op & 0xf000) >> 8;
     uint8_t  ln   = (op & 0x00ff);
@@ -97,7 +116,6 @@ status_t step(vm_t *vm)
 #ifdef DEBUG
     fprintf(stderr, "========================\n");
     fprintf(stderr, "op: 0x%04x\n", op);
-    fprintf(stderr, "mem: 0x%016llx\n", vm->mem);
     fprintf(stderr, "registers: ");
     for(int i = 0; i < 16; i++)
     {
@@ -182,7 +200,8 @@ status_t step(vm_t *vm)
                     else if(vm->extensions == SCHIP)
                         shift = &vm->V[x];
                     else
-                        return ST_OP_UNDEFINED;
+                        return ST_QUIRK_UNDEFINED;
+
                     vm->V[15] = *shift & 0x01;
                     *store = *shift >> 1;
                     break;
@@ -197,7 +216,8 @@ status_t step(vm_t *vm)
                     else if(vm->extensions == SCHIP)
                         shift = &vm->V[x];
                     else
-                        return ST_OP_UNDEFINED;
+                        return ST_QUIRK_UNDEFINED;
+
                     vm->V[15] = *shift >> 7;
                     *store = *shift << 1;
                     break;
@@ -219,6 +239,11 @@ status_t step(vm_t *vm)
             vm->V[x] = randint() & ln;
             break;
         case 0xd0:
+            if(!testsegfault(vm->I, vm))
+                return ST_SEGFAULT;
+            if(!testsegfault(vm->I+n, vm))
+                return ST_SEGFAULT;
+
             draw(vm, vm->V[x], vm->V[y], n);
             break;
         case 0xe0:
@@ -255,25 +280,38 @@ status_t step(vm_t *vm)
                     vm->I = vm->V[x]*5; 
                     break;
                 case 0x33:
+                    if(!testsegfault(vm->I, vm))
+                        return ST_SEGFAULT;
+
                     vm->mem[vm->I+2] = vm->V[x]       % 10;
                     vm->mem[vm->I+1] = vm->V[x] / 10  % 10;
                     vm->mem[vm->I]   = vm->V[x] / 100 % 10;
                     break;
                 case 0x55:
+                    if(!testsegfault(vm->I, vm))
+                        return ST_SEGFAULT;
+                    if(!testsegfault(vm->I+x, vm))
+                        return ST_SEGFAULT;
+
                     memcpy(vm->mem+vm->I, &vm->V, x+1);
                     if(vm->extensions == CHIP8)
                         vm->I += x + 1;
                     else if(vm->extensions == SCHIP);
                     else
-                        return ST_OP_UNDEFINED;
+                        return ST_QUIRK_UNDEFINED;
                     break;
                 case 0x65:
+                    if(!testsegfault(vm->I, vm))
+                        return ST_SEGFAULT;
+                    if(!testsegfault(vm->I+x, vm))
+                        return ST_SEGFAULT;
+
                     memcpy(&vm->V, vm->mem+vm->I, x+1);
                     if(vm->extensions == CHIP8)
                         vm->I += x + 1;
                     else if(vm->extensions == SCHIP);
                     else
-                        return ST_OP_UNDEFINED;
+                        return ST_QUIRK_UNDEFINED;
                     break;
                 default:
                     return ST_OP_UNDEFINED;
