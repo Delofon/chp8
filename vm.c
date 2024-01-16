@@ -251,7 +251,12 @@ status_t step(vm_t *vm)
             vm->I = nnn;
             break;
         case 0xb0:
-            vm->PC = vm->V[0] + nnn - 2;
+            if(vm->extensions == CHIP8)
+                vm->PC = vm->V[0] + nnn - 2;
+            else if(vm->extensions == SCHIP)
+                vm->PC = vm->V[x] + nnn - 2;
+            else
+                return ST_QUIRK_UNDEFINED;
             break;
         case 0xc0:
             vm->V[x] = randint() & ln;
