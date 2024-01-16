@@ -397,8 +397,6 @@ void draw(vm_t *vm, int x, int y, int n)
     if(n == 16)
         return;
 
-    // maybe also implement display wait quirk?
-
     uint8_t *sprite = &vm->mem[vm->I];
     vm->V[15] = 0;
     vm->redrawscreen = 1;

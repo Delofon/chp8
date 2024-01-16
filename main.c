@@ -24,7 +24,9 @@ void usage()
     printf("        Choose CHIP-8 extensions. Valid arguments are: CHIP8, SCHIP, XOCHIP. Default: CHIP8\n");
 }
 
-pa_simple *s;
+pa_simple *s = 0;
+
+uint8_t usecolor = 0;
 
 int main(int argc, char **argv)
 {
@@ -115,12 +117,23 @@ int main(int argc, char **argv)
 #ifndef DEBUG
     initscr();
 #endif
+
     
     savetty();
     curs_set(0);
     cbreak();
     noecho();
     nodelay(stdscr, true);
+
+    if(has_colors())
+    {
+        start_color();
+        use_default_colors();
+
+        init_pair(1, COLOR_BLACK, COLOR_WHITE);
+
+        usecolor = 1;
+    }
 
     const timing_t target = hztotiming(TARGET_HZ);
 
@@ -274,8 +287,17 @@ void drawscr(vm_t *vm)
         if(!itocoord(i, &x, &y))
             continue;
         move(y, x*2);
-        if(!vm->screen[i]) printw("  ");
-        else if(vm->screen[i]) printw("00");
+        if(!usecolor)
+        {
+            if(!vm->screen[i]) printw("  ");
+            else printw("00");
+        }
+        else
+        {
+            if(vm->screen[i]) attron(COLOR_PAIR(1));
+            printw("  ");
+            attroff(COLOR_PAIR(1));
+        }
     }
 }
 
