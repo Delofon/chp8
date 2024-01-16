@@ -96,7 +96,6 @@ status_t step(vm_t *vm)
     int8_t inp = input();
 
     uint8_t *shift;
-    uint8_t *store = &vm->V[x];
 
     uint8_t flag = 0;
 
@@ -220,8 +219,9 @@ status_t step(vm_t *vm)
                     else
                         return ST_QUIRK_UNDEFINED;
 
-                    vm->V[15] = *shift & 0x01;
-                    *store = *shift >> 1;
+                    flag      = *shift & 0x01;
+                    vm->V[x]  = *shift >> 1;
+                    vm->V[15] = flag;
                     break;
                 case 0x07:
                     flag = !testsubunderflow(vm->V[y], vm->V[x]);
@@ -236,8 +236,9 @@ status_t step(vm_t *vm)
                     else
                         return ST_QUIRK_UNDEFINED;
 
-                    vm->V[15] = *shift >> 7;
-                    *store = *shift << 1;
+                    flag      = *shift >> 7;
+                    vm->V[x]  = *shift << 1;
+                    vm->V[15] = flag;
                     break;
                 default:
                     return ST_OP_UNDEFINED;
