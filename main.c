@@ -191,7 +191,7 @@ int getch_buf()
     const timing_t getch_buf_cl_target = hztotiming(GETCH_HZ);
     timing_t cl = now();
 
-    // TODO: why is getch_bf == ERR needed here?
+    // FIXME: why is getch_bf == ERR needed here?
     if(getch_bf == ERR || cl - getch_buf_cl >= getch_buf_cl_target)
     {
         getch_buf_cl = cl;

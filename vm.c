@@ -15,6 +15,7 @@ uint16_t pop(vm_t *vm)
 
 void push(vm_t *vm, uint16_t val)
 {
+    if(vm->SP == STACK_SIZE) return;
     vm->stack[vm->SP++] = val;
 }
 
@@ -147,11 +148,11 @@ status_t step(vm_t *vm)
                 else if(ln == 0xfe)
                     vm->graphicsmode = LORES;
                 else if((ln & 0xf0) == 0xc0);
-                    // TODO
+                    // TODO: scrolldown n
                 else if(ln == 0xfb);
-                    // TODO
+                    // TODO: scrollright
                 else if(ln == 0xfc);
-                    // TODO
+                    // TODO: scrollleft
                 else if(ln == 0xfd)
                     vm->halt = 1;
                 else
@@ -309,7 +310,7 @@ status_t step(vm_t *vm)
                 case 0x30:
                     if(vm->extensions == CHIP8)
                         return ST_OP_UNDEFINED;
-                    // TODO
+                    // TODO: bigfont
                     break;
                 case 0x33:
                     if(!testsegfault(vm->I, vm))
@@ -348,12 +349,12 @@ status_t step(vm_t *vm)
                 case 0x75:
                     if(vm->extensions == CHIP8)
                         return ST_OP_UNDEFINED;
-                    // TODO
+                    // TODO: saveflags
                     break;
                 case 0x85:
                     if(vm->extensions == CHIP8)
                         return ST_OP_UNDEFINED;
-                    // TODO
+                    // TODO: loadflags
                     break;
                 default:
                     return ST_OP_UNDEFINED;
@@ -392,8 +393,11 @@ int coordtoi(int x, int y)
 
 void draw(vm_t *vm, int x, int y, int n)
 {
+    // TODO: SCHIP 16x16 sprites
     if(n == 16)
         return;
+
+    // maybe also implement display wait quirk?
 
     uint8_t *sprite = &vm->mem[vm->I];
     vm->V[15] = 0;

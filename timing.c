@@ -21,7 +21,7 @@ timing_t hztotiming(int hz)
 // long now = ts.tv_nsec;
 // usleep((start + target - now) / 1000);
 
-// TODO: find something better as this has 100% cpu load
+// FIXME: find something better as this has 100% cpu load
 // using timespec as described above produces weird issues
 // clock() combined with usleep does not produce desired results
 void sleepuntil(timing_t start, timing_t nap)
