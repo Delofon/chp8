@@ -1,7 +1,11 @@
 # chp8 - a CHIP-8+ emulator
-Dependencies: libpulse, ncurses
+Dependencies:
+```
+libpulse, ncurses
+```
 
 References:
+- Octo IDE: https://github.com/JohnEarnest/Octo
 - Awesome CHIP-8: https://chip-8.github.io
 - CHIP-8 Wikipedia Page: https://en.wikipedia.org/wiki/CHIP-8
 - CHIP-8 Instruction Set: https://github.com/mattmikolay/chip-8/wiki/CHIP%E2%80%908-Instruction-Set
