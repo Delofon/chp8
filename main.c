@@ -6,6 +6,9 @@
 #include <stdint.h>
 #include <errno.h>
 #include <string.h>
+#include <langinfo.h>
+
+#define NCURSES_WIDECHAR 1
 #include <ncurses.h>
 
 #include "main.h"
@@ -15,10 +18,12 @@
 
 void drawscr(vm_t *vm);
 void loadfont(vm_t *vm);
+uint8_t testuni();
 
 void usage()
 {
     printf("Usage: chp8 [options] <program>\n");
+    printf("Note: unicode support is assumed in HIRES graphics.\n");
     printf("Options:\n");
     printf("    -e <extensions>\n");
     printf("        Choose CHIP-8 extensions. Valid arguments are: CHIP8, SCHIP, XOCHIP. Default: CHIP8\n");
@@ -118,7 +123,6 @@ int main(int argc, char **argv)
     initscr();
 #endif
 
-    
     savetty();
     curs_set(0);
     cbreak();
@@ -131,6 +135,7 @@ int main(int argc, char **argv)
         use_default_colors();
 
         init_pair(1, COLOR_BLACK, COLOR_WHITE);
+        init_pair(2, COLOR_WHITE, COLOR_BLACK);
 
         usecolor = 1;
     }
@@ -269,34 +274,73 @@ void showinp(int inp)
         mvprintw(50, 0, " ");
 }
 
-int itocoord(int i, int *x, int *y)
-{
-    if(i < 0) return 0;
-    if(i >= SCREEN_SIZE) return 0;
-
-    *x = i % SCREEN_WIDTH;
-    *y = i / SCREEN_WIDTH;
-    return 1;
-}
-
+// TODO: make drawing to ncurses screen more configurable
 void drawscr(vm_t *vm)
 {
-    for(int i = 0; i < SCREEN_SIZE; i++)
+    if(vm->graphicsmode == LORES)
     {
-        int x, y;
-        if(!itocoord(i, &x, &y))
-            continue;
-        move(y, x*2);
-        if(!usecolor)
+        for(int i = 0; i < SCREEN_SIZE; i++)
         {
-            if(!vm->screen[i]) printw("  ");
-            else printw("00");
+            int x, y;
+            if(!itocoord(i, &x, &y, SCREEN_WIDTH, SCREEN_SIZE))
+                continue;
+            move(y, x*2);
+
+            if(!usecolor)
+            {
+                if(!vm->screen[i]) printw("  ");
+                else printw("00");
+            }
+            else
+            {
+                if(vm->screen[i]) attron(COLOR_PAIR(1));
+                addstr("  ");
+                attroff(COLOR_PAIR(1));
+            }
         }
-        else
+    }
+    else
+    {
+        if(!testuni())
         {
-            if(vm->screen[i]) attron(COLOR_PAIR(1));
-            printw("  ");
-            attroff(COLOR_PAIR(1));
+            mvprintw(0, 0, "Unicode is unsupported!");
+            return;
+        }
+
+        for(int i = 0; i < SCREEN_SIZE_HIRES; i+=2)
+        {
+            int x, y;
+            if(!itocoord(i, &x, &y, SCREEN_WIDTH_HIRES, SCREEN_SIZE_HIRES))
+                continue;
+            move(y/2, x);
+
+            uint8_t up = vm->screenhr[i];
+            uint8_t dw = vm->screenhr[i+SCREEN_WIDTH_HIRES];
+
+            cchar_t cchar;
+            wchar_t *wchar;
+            attr_t attr = 0;
+            short colorpair = 1;
+
+            if(up && !dw)
+            {
+                wchar = UPPERHALF;
+            }
+            else if(!up && dw)
+            {
+                wchar = LOWERHALF;
+            }
+            else if (up && dw)
+            {
+                wchar = FULLBLOCK;
+            }
+            else
+            {
+                wchar = L" ";
+            }
+
+            setcchar(&cchar, wchar, attr, colorpair, 0);
+            add_wch(&cchar);
         }
     }
 }
@@ -438,5 +482,30 @@ void memdump(vm_t *vm)
     FILE *memdumpf = fopen("memdump", "wb");
     fwrite(vm->mem, 1, MEMORY_SIZE, memdumpf);
     fclose(memdumpf);
+}
+
+uint8_t testuni()
+{
+    return strcmp(nl_langinfo(CODESET), "UTF-8");
+}
+
+int itocoord(int i, int *x, int *y, int width, int size)
+{
+    if(i < 0) return 0;
+    if(i >= size) return 0;
+
+    *x = i % width;
+    *y = i / width;
+    return 1;
+}
+
+int coordtoi(int x, int y, int width, int height)
+{
+    if(x < 0) return -1;
+    if(x >= width) return -1;
+    if(y < 0) return -1;
+    if(y >= height) return -1;
+
+    return x + y * width;
 }
 

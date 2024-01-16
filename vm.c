@@ -135,7 +135,10 @@ status_t step(vm_t *vm)
     {
         case 0x00:
             if(ln == 0xe0)
-                memset(vm->screen, 0, sizeof(vm->screen));
+                if(vm->graphicsmode == LORES)
+                    memset(vm->screen, 0, sizeof(vm->screen));
+                else
+                    memset(vm->screenhr, 0, sizeof(vm->screenhr));
             else if(ln == 0xee)
             {
                 if(vm->SP == 0) return ST_STACKUNDERFLOW;
@@ -381,40 +384,67 @@ status_t step(vm_t *vm)
     return ST_OK;
 }
 
-int coordtoi(int x, int y)
+void draw16(vm_t *vm, uint8_t *screen, int x, int y, int width, int height)
 {
-    if(x < 0) return -1;
-    if(x >= SCREEN_WIDTH) return -1;
-    if(y < 0) return -1;
-    if(y >= SCREEN_HEIGHT) return -1;
+    uint8_t *sprite = &vm->mem[vm->I];
+    vm->V[15] = 0;
+    vm->redrawscreen = 1;
 
-    return x + y * SCREEN_WIDTH;
+    x %= width;
+    y %= height;
+
+    for(int v = 0; v < 32; v+=2)
+    {
+        for(int u = 0; u < 16; u++)
+        {
+            uint8_t bit;
+            if(u < 8)
+                bit = (sprite[v]   >> (7  - u)) & 0x01;
+            else
+                bit = (sprite[v+1] >> (15 - u)) & 0x01;
+            int i = coordtoi(x+u, y+v/2, width, height);
+            if(i == -1) continue;
+
+            if(screen[i] && bit) vm->V[15] = 1;
+            screen[i] ^= bit;
+        }
+    }
 }
 
-void draw(vm_t *vm, int x, int y, int n)
+void drawsprite(vm_t *vm, uint8_t *screen, int x, int y, int n, int width, int height)
 {
-    // TODO: SCHIP 16x16 sprites
     if(n == 16)
+    {
+        draw16(vm, screen, x, y, width, height);
         return;
+    }
 
     uint8_t *sprite = &vm->mem[vm->I];
     vm->V[15] = 0;
     vm->redrawscreen = 1;
 
-    x %= SCREEN_WIDTH;
-    y %= SCREEN_HEIGHT;
+    x %= width;
+    y %= height;
 
     for(int v = 0; v < n; v++)
     {
         for(int u = 0; u < 8; u++)
         {
             uint8_t bit = (sprite[v] >> (7 - u)) & 0x01;
-            int i = coordtoi(x+u, y+v);
+            int i = coordtoi(x+u, y+v, width, height);
             if(i == -1) continue;
 
-            if(vm->screen[i] && bit) vm->V[15] = 1;
-            vm->screen[i] ^= bit;
+            if(screen[i] && bit) vm->V[15] = 1;
+            screen[i] ^= bit;
         }
     }
+}
+
+void draw(vm_t *vm, int x, int y, int n)
+{
+    if(vm->graphicsmode == LORES)
+        drawsprite(vm, vm->screen,   x, y, n, SCREEN_WIDTH, SCREEN_HEIGHT);
+    else
+        drawsprite(vm, vm->screenhr, x, y, n, SCREEN_WIDTH_HIRES, SCREEN_HEIGHT_HIRES);
 }
 

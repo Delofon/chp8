@@ -15,9 +15,6 @@
 #define SCREEN_SIZE_HIRES (SCREEN_WIDTH_HIRES * SCREEN_HEIGHT_HIRES)
 #define MEMORY_SIZE 4096
 
-#define LORES 0
-#define HIRES 1
-
 #define NOINP_KEYCODE -1
 #define HALT_KEYCODE -2
 #define MEMDUMP_KEYCODE -3
@@ -31,12 +28,19 @@ typedef enum
     XOCHIP
 } extensions_t;
 
+typedef enum
+{
+    LORES = 0,
+    HIRES
+} graphicsmode_t;
+
 typedef struct _vm_t
 {
     extensions_t extensions;
 
     uint16_t stack[STACK_SIZE];
     uint8_t screen[SCREEN_SIZE];
+    uint8_t screenhr[SCREEN_SIZE_HIRES];
     uint8_t *mem;
     uint8_t V[16];
     uint16_t I;
@@ -44,7 +48,7 @@ typedef struct _vm_t
     uint16_t SP;
     uint16_t op;
 
-    uint8_t graphicsmode;
+    graphicsmode_t graphicsmode;
     uint8_t halt;
 
     uint8_t delay;
