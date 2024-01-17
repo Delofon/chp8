@@ -307,38 +307,42 @@ void drawscr(vm_t *vm)
         //    return;
         //}
 
-        for(int i = 0; i < SCREEN_SIZE_HIRES; i++)
+        for(int y = 0; y < SCREEN_HEIGHT_HIRES; y+=2)
         {
-            int x, y;
-            if(!itocoord(i, &x, &y, SCREEN_WIDTH_HIRES, SCREEN_SIZE_HIRES))
-                continue;
-            move(y/2, x);
+            for(int x = 0; x < SCREEN_WIDTH_HIRES; x++)
+            {
+                int i = coordtoi(x, y, SCREEN_WIDTH_HIRES, SCREEN_HEIGHT_HIRES);
+                if(i == -1)
+                    continue;
+                move(y/2, x);
 
-            uint8_t up = vm->screenhr[i];
-            uint8_t dw = vm->screenhr[i+SCREEN_WIDTH_HIRES];
 
-            attron(COLOR_PAIR(2));
-            if(up && !dw)
-            {
-                addwstr(UPPERHALF);
-                //printw("0");
+                uint8_t up = vm->screenhr[i];
+                uint8_t dw = vm->screenhr[i+SCREEN_WIDTH_HIRES];
+
+                attron(COLOR_PAIR(2));
+                if(up && !dw)
+                {
+                    addwstr(UPPERHALF);
+                    //printw("0");
+                }
+                else if(!up && dw)
+                {
+                    addwstr(LOWERHALF);
+                    //printw("1");
+                }
+
+                else if (up && dw)
+                {
+                    addwstr(FULLBLOCK);
+                    //printw("2");
+                }
+                else
+                {
+                    printw(" ");
+                }
+                attroff(COLOR_PAIR(2));
             }
-            else if(!up && dw)
-            {
-                addwstr(LOWERHALF);
-                //printw("1");
-            }
-            
-            else if (up && dw)
-            {
-                addwstr(FULLBLOCK);
-                //printw("2");
-            }
-            else
-            {
-                printw(" ");
-            }
-            attroff(COLOR_PAIR(2));
         }
     }
 }
