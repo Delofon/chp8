@@ -7,7 +7,6 @@
 #include <errno.h>
 #include <string.h>
 #include <locale.h>
-#include <langinfo.h>
 
 #define NCURSES_WIDECHAR 1
 #include <ncurses.h>
@@ -304,12 +303,6 @@ void drawscr(vm_t *vm)
     }
     else
     {
-        //if(!testuni())
-        //{
-        //    mvprintw(0, 0, "Unicode is unsupported!");
-        //    return;
-        //}
-
         for(int y = 0; y < SCREEN_HEIGHT_HIRES; y+=2)
         {
             for(int x = 0; x < SCREEN_WIDTH_HIRES; x++)
@@ -487,11 +480,6 @@ void memdump(vm_t *vm)
     FILE *memdumpf = fopen("memdump", "wb");
     fwrite(vm->mem, 1, MEMORY_SIZE, memdumpf);
     fclose(memdumpf);
-}
-
-uint8_t testuni()
-{
-    return strcmp(nl_langinfo(CODESET), "UTF-8");
 }
 
 int itocoord(int i, int *x, int *y, int width, int size)
