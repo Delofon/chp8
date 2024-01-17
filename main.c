@@ -137,7 +137,7 @@ int main(int argc, char **argv)
         use_default_colors();
 
         init_pair(1, COLOR_BLACK, COLOR_WHITE);
-        init_pair(2, COLOR_WHITE, COLOR_BLACK);
+        init_pair(2, COLOR_WHITE, -1);
 
         usecolor = 1;
     }
