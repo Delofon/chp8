@@ -241,7 +241,8 @@ void load(uint8_t *registers, int x)
     FILE *regfile = fopen("./registers", "rb");
     if(!regfile)
     {
-        // does not deserve a crash
+        // does not deserve a crash, assume all 0
+        memset(registers, 0, x);
         return;
     }
 
