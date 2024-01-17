@@ -135,10 +135,13 @@ status_t step(vm_t *vm)
     {
         case 0x00:
             if(ln == 0xe0)
+            {
                 if(vm->graphicsmode == LORES)
                     memset(vm->screen, 0, sizeof(vm->screen));
                 else
                     memset(vm->screenhr, 0, sizeof(vm->screenhr));
+                vm->redrawscreen = 1;
+            }
             else if(ln == 0xee)
             {
                 if(vm->SP == 0) return ST_STACKUNDERFLOW;
@@ -352,12 +355,12 @@ status_t step(vm_t *vm)
                 case 0x75:
                     if(vm->extensions == CHIP8)
                         return ST_OP_UNDEFINED;
-                    // TODO: saveflags
+                    save(vm->V, x);
                     break;
                 case 0x85:
                     if(vm->extensions == CHIP8)
                         return ST_OP_UNDEFINED;
-                    // TODO: loadflags
+                    load(vm->V, x);
                     break;
                 default:
                     return ST_OP_UNDEFINED;
@@ -413,7 +416,7 @@ void draw16(vm_t *vm, uint8_t *screen, int x, int y, int width, int height)
 
 void drawsprite(vm_t *vm, uint8_t *screen, int x, int y, int n, int width, int height)
 {
-    if(n == 16)
+    if(vm->extensions > CHIP8 && n == 16)
     {
         draw16(vm, screen, x, y, width, height);
         return;

@@ -220,6 +220,35 @@ int getch_buf()
     return getch_bf;
 }
 
+// maybe open the file once at startup and then
+// read&write to it without reopening it each time?
+void save(uint8_t *registers, int x)
+{
+    FILE *regfile = fopen("./registers", "wb");
+    if(!regfile)
+    {
+        // unable to open a file but does not deserve a crash
+        // maybe set something in the vm state to indicate a runtime error?
+        return;
+    }
+
+    fwrite(registers, x, 1, regfile);
+    fclose(regfile);
+}
+
+void load(uint8_t *registers, int x)
+{
+    FILE *regfile = fopen("./registers", "rb");
+    if(!regfile)
+    {
+        // does not deserve a crash
+        return;
+    }
+
+    fread(registers, x, 1, regfile);
+    fclose(regfile);
+}
+
 int8_t input()
 {
     const int mapping[16] =
