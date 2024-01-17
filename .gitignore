@@ -1,5 +1,6 @@
 chp8
 memdump
+registers
 
 *.rom
 *.ch8
