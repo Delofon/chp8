@@ -6,6 +6,7 @@
 #include <stdint.h>
 #include <errno.h>
 #include <string.h>
+#include <locale.h>
 #include <langinfo.h>
 
 #define NCURSES_WIDECHAR 1
@@ -40,6 +41,8 @@ int main(int argc, char **argv)
         usage();
         return 0;
     }
+
+    setlocale(LC_ALL, "");
 
     extensions_t extensions = CHIP8;
     int opt;
