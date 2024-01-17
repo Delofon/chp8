@@ -301,13 +301,13 @@ void drawscr(vm_t *vm)
     }
     else
     {
-        if(!testuni())
-        {
-            mvprintw(0, 0, "Unicode is unsupported!");
-            return;
-        }
+        //if(!testuni())
+        //{
+        //    mvprintw(0, 0, "Unicode is unsupported!");
+        //    return;
+        //}
 
-        for(int i = 0; i < SCREEN_SIZE_HIRES; i+=2)
+        for(int i = 0; i < SCREEN_SIZE_HIRES; i++)
         {
             int x, y;
             if(!itocoord(i, &x, &y, SCREEN_WIDTH_HIRES, SCREEN_SIZE_HIRES))
@@ -317,30 +317,28 @@ void drawscr(vm_t *vm)
             uint8_t up = vm->screenhr[i];
             uint8_t dw = vm->screenhr[i+SCREEN_WIDTH_HIRES];
 
-            cchar_t cchar;
-            wchar_t *wchar;
-            attr_t attr = 0;
-            short colorpair = 1;
-
+            attron(COLOR_PAIR(2));
             if(up && !dw)
             {
-                wchar = UPPERHALF;
+                addwstr(UPPERHALF);
+                //printw("0");
             }
             else if(!up && dw)
             {
-                wchar = LOWERHALF;
+                addwstr(LOWERHALF);
+                //printw("1");
             }
+            
             else if (up && dw)
             {
-                wchar = FULLBLOCK;
+                addwstr(FULLBLOCK);
+                //printw("2");
             }
             else
             {
-                wchar = L" ";
+                printw(" ");
             }
-
-            setcchar(&cchar, wchar, attr, colorpair, 0);
-            add_wch(&cchar);
+            attroff(COLOR_PAIR(2));
         }
     }
 }
