@@ -3,7 +3,7 @@
 CC := gcc
 CFLAGS := $(shell pkg-config --cflags libpulse-simple ncurses) -lm $(shell pkg-config --libs libpulse-simple ncurses)
 CWARNINGS := -Wall -Wextra -Werror=shadow -Wswitch-enum -pedantic
-CNOWARNINGS := -Wno-strict-prototypes -Wno-gnu-binary-literal
+CNOWARNINGS := -Wno-strict-prototypes
 SOURCES := main.c sound.c vm.c timing.c
 
 chp8:
