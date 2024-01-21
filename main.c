@@ -119,6 +119,7 @@ int main(int argc, char **argv)
     screeninit();
 
     const timing_t target = hztotiming(TARGET_HZ);
+    timing_t frametime = 1;
 
     uint64_t frame = 0;
 
@@ -144,13 +145,14 @@ int main(int argc, char **argv)
         if(vm.redrawscreen)
         {
             screendrawtext(49, 0, "delay timer: %d\n", vm.delay);
-            screendrawtext(50, 0, "framerate: %f\n", (float)frame / timingtos(now()));
+            screendrawtext(50, 0, "framerate: %lld\n", CLOCKS_PER_SEC / frametime);
             screendrawtext(51, 0, "frame: %lu\n", frame);
             screendraw(&vm);
             vm.redrawscreen = 0;
         }
 
         sleepuntil(start, target);
+        frametime = now() - start;
         frame++;
     }
 
