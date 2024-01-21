@@ -59,7 +59,8 @@ int main(int argc, char **argv)
                 }
                 break;
             default:
-                fprintf(stderr, "warning: unrecognized option %c, ignoring.\n", opt);
+                fprintf(stderr, "error: unrecognized option %c.\n", opt);
+                return 7;
                 break;
         }
     }
