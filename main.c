@@ -8,13 +8,11 @@
 #include <string.h>
 #include <locale.h>
 
-#define NCURSES_WIDECHAR 1
-#include <ncurses.h>
-
 #include "main.h"
 #include "vm.h"
 #include "timing.h"
 #include "sound.h"
+#include "screen.h"
 
 void drawscr(vm_t *vm);
 void loadfont(vm_t *vm);
@@ -29,8 +27,6 @@ void usage()
 }
 
 pa_simple *s = 0;
-
-uint8_t usecolor = 0;
 
 int main(int argc, char **argv)
 {
@@ -85,7 +81,7 @@ int main(int argc, char **argv)
         .I = 0,
         .PC = 0x0200,
         .SP = 0,
-        .halt = false,
+        .halt = 0,
 
         .delay = 0,
         .sound = 0,
@@ -120,26 +116,7 @@ int main(int argc, char **argv)
         return 4;
     }
 
-#ifndef DEBUG
-    initscr();
-#endif
-
-    savetty();
-    curs_set(0);
-    cbreak();
-    noecho();
-    nodelay(stdscr, true);
-
-    if(has_colors())
-    {
-        start_color();
-        use_default_colors();
-
-        init_pair(1, COLOR_BLACK, COLOR_WHITE);
-        init_pair(2, COLOR_WHITE, -1);
-
-        usecolor = 1;
-    }
+    screeninit();
 
     const timing_t target = hztotiming(TARGET_HZ);
 
@@ -155,8 +132,7 @@ int main(int argc, char **argv)
 
         if(st != ST_OK)
         {
-            resetty();
-            endwin();
+            screenend();
             
             fprintf(stderr, "error: virtual machine encountered an error: %s\n", sttocstr(st));
             fprintf(stderr, "error occured at PC with op: 0x%04x 0x%04x\n", vm.PC, vm.op);
@@ -167,11 +143,10 @@ int main(int argc, char **argv)
 
         if(vm.redrawscreen)
         {
-            drawscr(&vm);
-            mvprintw(49, 0, "delay timer: %d\n", vm.delay);
-            mvprintw(50, 0, "framerate: %f\n", (float)frame / timingtos(now()));
-            mvprintw(51, 0, "frame: %lu\n", frame);
-            refresh();
+            screendrawtext(49, 0, "delay timer: %d\n", vm.delay);
+            screendrawtext(50, 0, "framerate: %f\n", (float)frame / timingtos(now()));
+            screendrawtext(51, 0, "frame: %lu\n", frame);
+            screendraw(&vm);
             vm.redrawscreen = 0;
         }
 
@@ -179,8 +154,7 @@ int main(int argc, char **argv)
         frame++;
     }
 
-    resetty();
-    endwin(); 
+    screenend();
 
 #ifdef DEBUG
     memdump(&vm);
@@ -201,25 +175,10 @@ int main(int argc, char **argv)
     return 0;
 }
 
+// TODO: maybe move to sound.c?
 void pabeep()
 {
     paplay(s, 440, 1000);
-}
-
-int getch_bf = ERR;
-timing_t getch_buf_cl = 0;
-int getch_buf()
-{
-    const timing_t getch_buf_cl_target = hztotiming(GETCH_HZ);
-    timing_t cl = now();
-
-    // FIXME: why is getch_bf == ERR needed here?
-    if(getch_bf == ERR || cl - getch_buf_cl >= getch_buf_cl_target)
-    {
-        getch_buf_cl = cl;
-        getch_bf = getch();
-    }
-    return getch_bf;
 }
 
 // maybe open the file once at startup and then
@@ -273,10 +232,11 @@ int8_t input()
         'f',
         'v'
     };
-    int ch = getch_buf();
-    flushinp();
 
-    if(ch == ERR)
+    int ch = screeninput();
+
+    // FIXME: this looks awful
+    if(ch == NOINP_KEYCODE)
         return NOINP_KEYCODE;
     else if(ch == 'h')
         return HALT_KEYCODE;
@@ -296,86 +256,25 @@ int8_t input()
 
 int8_t blockinginput()
 {
-    nodelay(stdscr, false);
-    int8_t inp = input();
-    nodelay(stdscr, true);
+    int inp;
+    timing_t start = now();
+
+    do
+    {
+        inp = input();
+        sleepuntil(start, hztotiming(TARGET_HZ));
+    } while(inp == NOINP_KEYCODE);
+
     return inp;
 }
 
-void showinp(int inp)
-{
-    if(inp != NOINP_KEYCODE)
-        mvprintw(50, 0, "%c", inp+'0');
-    else
-        mvprintw(50, 0, " ");
-}
-
-// TODO: make drawing to ncurses screen more configurable
-void drawscr(vm_t *vm)
-{
-    if(vm->graphicsmode == LORES)
-    {
-        for(int i = 0; i < SCREEN_SIZE; i++)
-        {
-            int x, y;
-            if(!itocoord(i, &x, &y, SCREEN_WIDTH, SCREEN_SIZE))
-                continue;
-            move(y, x*2);
-
-            if(!usecolor)
-            {
-                if(!vm->screen[i]) printw("  ");
-                else printw("00");
-            }
-            else
-            {
-                if(vm->screen[i]) attron(COLOR_PAIR(1));
-                addstr("  ");
-                attroff(COLOR_PAIR(1));
-            }
-        }
-    }
-    else
-    {
-        for(int y = 0; y < SCREEN_HEIGHT_HIRES; y+=2)
-        {
-            for(int x = 0; x < SCREEN_WIDTH_HIRES; x++)
-            {
-                int i = coordtoi(x, y, SCREEN_WIDTH_HIRES, SCREEN_HEIGHT_HIRES);
-                if(i == -1)
-                    continue;
-                move(y/2, x);
-
-
-                uint8_t up = vm->screenhr[i];
-                uint8_t dw = vm->screenhr[i+SCREEN_WIDTH_HIRES];
-
-                attron(COLOR_PAIR(2));
-                if(up && !dw)
-                {
-                    addwstr(UPPERHALF);
-                    //printw("0");
-                }
-                else if(!up && dw)
-                {
-                    addwstr(LOWERHALF);
-                    //printw("1");
-                }
-
-                else if (up && dw)
-                {
-                    addwstr(FULLBLOCK);
-                    //printw("2");
-                }
-                else
-                {
-                    printw(" ");
-                }
-                attroff(COLOR_PAIR(2));
-            }
-        }
-    }
-}
+//void showinp(int inp)
+//{
+//    if(inp != NOINP_KEYCODE)
+//        mvprintw(50, 0, "%c", inp+'0');
+//    else
+//        mvprintw(50, 0, " ");
+//}
 
 void loadfont(vm_t *vm)
 {
@@ -495,16 +394,16 @@ void loadfont(vm_t *vm)
     // TODO: hires font
     // hires
     // 0
-    vm->mem[80]  = 0b00000000; vm->mem[81]  = 0b00000000;
-    vm->mem[82]  = 0b00000000; vm->mem[83]  = 0b00000000;
-    vm->mem[84]  = 0b00000000; vm->mem[85]  = 0b00000000;
-    vm->mem[86]  = 0b00000000; vm->mem[87]  = 0b00000000;
-    vm->mem[88]  = 0b00000000; vm->mem[89]  = 0b00000000;
-    vm->mem[90]  = 0b00000000; vm->mem[91]  = 0b00000000;
-    vm->mem[92]  = 0b00000000; vm->mem[93]  = 0b00000000;
-    vm->mem[94]  = 0b00000000; vm->mem[95]  = 0b00000000;
-    vm->mem[96]  = 0b00000000; vm->mem[97]  = 0b00000000;
-    vm->mem[98]  = 0b00000000; vm->mem[99]  = 0b00000000;
+    //vm->mem[80]  = 0b00000000; vm->mem[81]  = 0b00000000;
+    //vm->mem[82]  = 0b00000000; vm->mem[83]  = 0b00000000;
+    //vm->mem[84]  = 0b00000000; vm->mem[85]  = 0b00000000;
+    //vm->mem[86]  = 0b00000000; vm->mem[87]  = 0b00000000;
+    //vm->mem[88]  = 0b00000000; vm->mem[89]  = 0b00000000;
+    //vm->mem[90]  = 0b00000000; vm->mem[91]  = 0b00000000;
+    //vm->mem[92]  = 0b00000000; vm->mem[93]  = 0b00000000;
+    //vm->mem[94]  = 0b00000000; vm->mem[95]  = 0b00000000;
+    //vm->mem[96]  = 0b00000000; vm->mem[97]  = 0b00000000;
+    //vm->mem[98]  = 0b00000000; vm->mem[99]  = 0b00000000;
 }
 
 uint32_t wyhash = 0;

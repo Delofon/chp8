@@ -13,10 +13,6 @@
 #endif
 #define GETCH_HZ 15
 
-#define UPPERHALF L"\u2580"
-#define LOWERHALF L"\u2584"
-#define FULLBLOCK L"\u2588"
-
 void save(uint8_t *registers, int x);
 void load(uint8_t *registers, int x);
 
