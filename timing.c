@@ -14,6 +14,11 @@ timing_t hztotiming(int hz)
     return CLOCKS_PER_SEC / hz;
 }
 
+int timingtos(timing_t tnow)
+{
+    return tnow / CLOCKS_PER_SEC;
+}
+
 // note:
 // struct timespec ts;
 // clock_gettime(CLOCK_MONOTONIC, &ts);

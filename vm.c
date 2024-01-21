@@ -112,6 +112,11 @@ status_t step(vm_t *vm)
         memdump(vm);
         return ST_OK;
     }
+    else if(inp == REFRESH_KEYCODE)
+    {
+        vm->redrawscreen = 1;
+        return ST_OK;
+    }
 
 #ifdef DEBUG
     fprintf(stderr, "========================\n");
@@ -134,7 +139,11 @@ status_t step(vm_t *vm)
     switch(hn)
     {
         case 0x00:
-            if(ln == 0xe0)
+            if(ln == 0x00)
+            {
+                // do nothing
+            }
+            else if(ln == 0xe0)
             {
                 if(vm->graphicsmode == LORES)
                     memset(vm->screen, 0, sizeof(vm->screen));
@@ -154,11 +163,11 @@ status_t step(vm_t *vm)
                 else if(ln == 0xfe)
                     vm->graphicsmode = LORES;
                 else if((ln & 0xf0) == 0xc0);
-                    // TODO: scrolldown n
+                    // TODO: scrolldown n - move screen up by n pixels
                 else if(ln == 0xfb);
-                    // TODO: scrollright
+                    // TODO: scrollright - move screen left by 4 pixels
                 else if(ln == 0xfc);
-                    // TODO: scrollleft
+                    // TODO: scrollleft - move screen right by 4 pixels
                 else if(ln == 0xfd)
                     vm->halt = 1;
                 else
@@ -259,6 +268,7 @@ status_t step(vm_t *vm)
             vm->I = nnn;
             break;
         case 0xb0:
+            // TODO: make this quirk disableable as some games don't support it
             if(vm->extensions == CHIP8)
                 vm->PC = vm->V[0] + nnn - 2;
             else if(vm->extensions == SCHIP)
@@ -316,7 +326,7 @@ status_t step(vm_t *vm)
                 case 0x30:
                     if(vm->extensions == CHIP8)
                         return ST_OP_UNDEFINED;
-                    // TODO: bigfont
+                    vm->I = vm->V[x]*20 + 80;
                     break;
                 case 0x33:
                     if(!testsegfault(vm->I, vm))

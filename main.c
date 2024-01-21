@@ -18,7 +18,6 @@
 
 void drawscr(vm_t *vm);
 void loadfont(vm_t *vm);
-uint8_t testuni();
 
 void usage()
 {
@@ -169,6 +168,9 @@ int main(int argc, char **argv)
         if(vm.redrawscreen)
         {
             drawscr(&vm);
+            mvprintw(49, 0, "delay timer: %d\n", vm.delay);
+            mvprintw(50, 0, "framerate: %f\n", (float)frame / timingtos(now()));
+            mvprintw(51, 0, "frame: %lu\n", frame);
             refresh();
             vm.redrawscreen = 0;
         }
@@ -280,6 +282,8 @@ int8_t input()
         return HALT_KEYCODE;
     else if(ch == 'm')
         return MEMDUMP_KEYCODE;
+    else if(ch == 'p')
+        return REFRESH_KEYCODE;
 
     for(int8_t i = 0; i < 16; i++)
     {
@@ -375,6 +379,7 @@ void drawscr(vm_t *vm)
 
 void loadfont(vm_t *vm)
 {
+    // lores
     // 0
     vm->mem[0] = 0xf0;
     vm->mem[1] = 0x90;
@@ -486,6 +491,20 @@ void loadfont(vm_t *vm)
     vm->mem[77] = 0xf0;
     vm->mem[78] = 0x80;
     vm->mem[79] = 0x80;
+
+    // TODO: hires font
+    // hires
+    // 0
+    vm->mem[80]  = 0b00000000; vm->mem[81]  = 0b00000000;
+    vm->mem[82]  = 0b00000000; vm->mem[83]  = 0b00000000;
+    vm->mem[84]  = 0b00000000; vm->mem[85]  = 0b00000000;
+    vm->mem[86]  = 0b00000000; vm->mem[87]  = 0b00000000;
+    vm->mem[88]  = 0b00000000; vm->mem[89]  = 0b00000000;
+    vm->mem[90]  = 0b00000000; vm->mem[91]  = 0b00000000;
+    vm->mem[92]  = 0b00000000; vm->mem[93]  = 0b00000000;
+    vm->mem[94]  = 0b00000000; vm->mem[95]  = 0b00000000;
+    vm->mem[96]  = 0b00000000; vm->mem[97]  = 0b00000000;
+    vm->mem[98]  = 0b00000000; vm->mem[99]  = 0b00000000;
 }
 
 uint32_t wyhash = 0;
@@ -519,6 +538,7 @@ int itocoord(int i, int *x, int *y, int width, int size)
 
     *x = i % width;
     *y = i / width;
+
     return 1;
 }
 

@@ -18,6 +18,7 @@
 #define NOINP_KEYCODE -1
 #define HALT_KEYCODE -2
 #define MEMDUMP_KEYCODE -3
+#define REFRESH_KEYCODE -4
 
 #define DELAY_HZ 60
 
