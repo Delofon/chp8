@@ -181,7 +181,7 @@ void pabeep()
     paplay(s, 440, 1000);
 }
 
-// maybe open the file once at startup and then
+// TODO: maybe open the file once at startup and then
 // read&write to it without reopening it each time?
 void save(uint8_t *registers, int x)
 {
@@ -189,7 +189,7 @@ void save(uint8_t *registers, int x)
     if(!regfile)
     {
         // unable to open a file but does not deserve a crash
-        // maybe set something in the vm state to indicate a runtime error?
+        // TODO: maybe set something in the vm state to indicate a runtime error?
         return;
     }
 
