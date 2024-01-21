@@ -268,13 +268,17 @@ status_t step(vm_t *vm)
             vm->I = nnn;
             break;
         case 0xb0:
-            // TODO: make this quirk disableable as some games don't support it
+            // TODO: make this quirk disableable at runtime as some games don't support it
+#ifndef DISABLEJUMPINGQUIRK
             if(vm->extensions == CHIP8)
                 vm->PC = vm->V[0] + nnn - 2;
             else if(vm->extensions == SCHIP)
                 vm->PC = vm->V[x] + nnn - 2;
             else
                 return ST_QUIRK_UNDEFINED;
+#else
+            return vm->PC = vm->V[0] + nnn - 2;
+#endif
             break;
         case 0xc0:
             vm->V[x] = randint() & ln;
