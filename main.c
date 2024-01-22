@@ -24,6 +24,10 @@ void usage()
     printf("Options:\n");
     printf("    -e <extensions>\n");
     printf("        Choose CHIP-8 extensions. Valid arguments are: CHIP8, SCHIP, XOCHIP. Default: CHIP8\n");
+    printf("    -v <video backend>\n");
+    printf("        Choose video backend. Valid arguments are: ncurses, sdl. Default: ncurses\n");
+    printf("    -a <audio backend>\n");
+    printf("        Choose audio backend. Valid arguments are: pulse, sdl. Default: pulse\n");
 }
 
 pa_simple *s = 0;
@@ -39,9 +43,11 @@ int main(int argc, char **argv)
     setlocale(LC_ALL, "");
 
     extensions_t extensions = CHIP8;
+    video_t video = V_NCURSES;
+    audio_t audio = A_PULSE;
     int opt;
     // TODO: use getopt_long
-    while((opt = getopt(argc, argv, "e:")) != -1)
+    while((opt = getopt(argc, argv, "e:v:a:")) != -1)
     {
         switch(opt)
         {
@@ -55,12 +61,34 @@ int main(int argc, char **argv)
                 else
                 {
                         fprintf(stderr, "error: unrecognized CHIP-8 extensions name: %s\n", optarg);
-                        return 6;
+                        return EXIT_BAD_ARGS;
+                }
+                break;
+            case 'v':
+                if(strcmp(optarg, "ncurses") == 0)
+                    video = V_NCURSES;
+                else if(strcmp(optarg, "sdl") == 0)
+                    video = V_SDL;
+                else
+                {
+                        fprintf(stderr, "error: unrecognized video backend name: %s\n", optarg);
+                        return EXIT_BAD_ARGS;
+                }
+                break;
+            case 'a':
+                if(strcmp(optarg, "pulse") == 0)
+                    audio = A_PULSE;
+                else if(strcmp(optarg, "sdl") == 0)
+                    audio = A_SDL;
+                else
+                {
+                        fprintf(stderr, "error: unrecognized audio backend name: %s\n", optarg);
+                        return EXIT_BAD_ARGS;
                 }
                 break;
             default:
                 fprintf(stderr, "error: unrecognized option %c.\n", opt);
-                return 7;
+                return EXIT_BAD_OPTION;
                 break;
         }
     }
@@ -69,7 +97,7 @@ int main(int argc, char **argv)
     if(!progfile)
     {
         fprintf(stderr, "error: could not open file \"%s\": %s\n", argv[optind], strerror(errno));
-        return 1;
+        return EXIT_BAD_FILE;
     }
 
     vm_t vm =
@@ -94,7 +122,7 @@ int main(int argc, char **argv)
     if(!vm.mem)
     {
         fprintf(stderr, "error: could not allocate memory: %s\n", strerror(errno));
-        return 2;
+        return EXIT_BAD_MALLOC;
     }
     memset(vm.mem, 0, MEMORY_SIZE);
 
@@ -104,7 +132,7 @@ int main(int argc, char **argv)
     if(ferror(progfile))
     {
         fprintf(stderr, "error: could not read program file: %s\n", strerror(errno));
-        return 3;
+        return EXIT_BAD_FREAD;
     }
 
     fclose(progfile);
@@ -114,7 +142,7 @@ int main(int argc, char **argv)
     if(paerror != PA_OK)
     {
         fprintf(stderr, "error: could not init pulseaudio: %s\n", pa_strerror(paerror));
-        return 4;
+        return EXIT_BAD_PULSE;
     }
 
     screeninit();
@@ -140,7 +168,7 @@ int main(int argc, char **argv)
             fprintf(stderr, "error occured at PC with op: 0x%04x 0x%04x\n", vm.PC, vm.op);
             fprintf(stderr, "extensions used: %s\n", exttocstr(vm.extensions));
             memdump(&vm);
-            return 5;
+            return EXIT_VM_ERROR;
         }
 
         if(vm.redrawscreen)
