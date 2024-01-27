@@ -6,9 +6,13 @@
 #include "vm.h"
 #include "screen.h"
 
+#define UPPERHALF L"\u2580"
+#define LOWERHALF L"\u2584"
+#define FULLBLOCK L"\u2588"
+
 uint8_t usecolor = 0;
 
-void screeninit()
+void nc_screeninit()
 {
 #ifndef DEBUG
     initscr();
@@ -32,14 +36,14 @@ void screeninit()
     }
 }
 
-void screenend()
+void nc_screenend()
 {
     resetty();
     endwin();
 }
 
 // TODO: make drawing to ncurses screen more configurable
-void screendraw(vm_t *vm)
+void nc_screendraw(vm_t *vm)
 {
     if(vm->graphicsmode == LORES)
     {
@@ -105,7 +109,7 @@ void screendraw(vm_t *vm)
     }
 }
 
-void screendrawtext(int y, int x, const char *format, ...)
+void nc_screendrawtext(int y, int x, const char *format, ...)
 {
     va_list args;
     move(y, x);
@@ -130,7 +134,7 @@ int getch_buf()
     return getch_bf;
 }
 
-int screeninput()
+int nc_screeninput()
 {
     int ch = getch_buf();
     flushinp();

@@ -3,17 +3,16 @@
 
 #include "vm.h"
 
-#define UPPERHALF L"\u2580"
-#define LOWERHALF L"\u2584"
-#define FULLBLOCK L"\u2588"
+typedef struct
+{
+    void (*screeninit)();
+    void (*screenend)();
 
-void screeninit();
-void screenend();
+    void (*screendraw)(vm_t *vm);
+    void (*screendrawtext)(int y, int x, const char *format, ...);
 
-void screendraw(vm_t *vm);
-void screendrawtext(int y, int x, const char *format, ...);
-
-int screeninput();
+    int (*screeninput)();
+} screen_t;
 
 #endif
 

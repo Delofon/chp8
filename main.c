@@ -13,6 +13,7 @@
 #include "timing.h"
 #include "sound.h"
 #include "screen.h"
+#include "screen_ncurses.h"
 
 void drawscr(vm_t *vm);
 void loadfont(vm_t *vm);
@@ -31,6 +32,8 @@ void usage()
 }
 
 pa_simple *s = 0;
+
+screen_t screen;
 
 int main(int argc, char **argv)
 {
@@ -93,6 +96,17 @@ int main(int argc, char **argv)
         }
     }
 
+    if(video == V_NCURSES)
+    {
+        screen.screeninit = nc_screeninit;
+        screen.screenend = nc_screenend;
+
+        screen.screendraw = nc_screendraw;
+        screen.screendrawtext = nc_screendrawtext;
+
+        screen.screeninput = nc_screeninput;
+    }
+
     FILE *progfile = fopen(argv[optind], "rb");
     if(!progfile)
     {
@@ -145,7 +159,7 @@ int main(int argc, char **argv)
         return EXIT_BAD_PULSE;
     }
 
-    screeninit();
+    screen.screeninit();
 
     const timing_t target = hztotiming(TARGET_HZ);
     timing_t frametime = 1;
@@ -162,7 +176,7 @@ int main(int argc, char **argv)
 
         if(st != ST_OK)
         {
-            screenend();
+            screen.screenend();
             
             fprintf(stderr, "error: virtual machine encountered an error: %s\n", sttocstr(st));
             fprintf(stderr, "error occured at PC with op: 0x%04x 0x%04x\n", vm.PC, vm.op);
@@ -173,10 +187,10 @@ int main(int argc, char **argv)
 
         if(vm.redrawscreen)
         {
-            screendrawtext(49, 0, "delay timer: %d\n", vm.delay);
-            screendrawtext(50, 0, "framerate: %lld\n", CLOCKS_PER_SEC / frametime);
-            screendrawtext(51, 0, "frame: %lu\n", frame);
-            screendraw(&vm);
+            screen.screendrawtext(49, 0, "delay timer: %d\n", vm.delay);
+            screen.screendrawtext(50, 0, "framerate: %lld\n", CLOCKS_PER_SEC / frametime);
+            screen.screendrawtext(51, 0, "frame: %lu\n", frame);
+            screen.screendraw(&vm);
             vm.redrawscreen = 0;
         }
 
@@ -185,7 +199,7 @@ int main(int argc, char **argv)
         frame++;
     }
 
-    screenend();
+    screen.screenend();
 
 #ifdef DEBUG
     memdump(&vm);
@@ -264,7 +278,7 @@ int8_t input()
         'v'
     };
 
-    int ch = screeninput();
+    int ch = screen.screeninput();
 
     // FIXME: this looks awful
     if(ch == NOINP_KEYCODE)
