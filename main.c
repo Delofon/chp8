@@ -1,3 +1,4 @@
+// TODO: remove non-portable headers
 #include <pulse/simple.h>
 #include <pulse/error.h>
 #include <unistd.h>
@@ -6,6 +7,7 @@
 #include <stdint.h>
 #include <errno.h>
 #include <string.h>
+#include <assert.h>
 #include <locale.h>
 
 #include "main.h"
@@ -14,6 +16,7 @@
 #include "sound.h"
 #include "screen.h"
 #include "screen_ncurses.h"
+#include "screen_sdl.h"
 
 void drawscr(vm_t *vm);
 void loadfont(vm_t *vm);
@@ -98,13 +101,27 @@ int main(int argc, char **argv)
 
     if(video == V_NCURSES)
     {
-        screen.screeninit = nc_screeninit;
-        screen.screenend = nc_screenend;
+        screen.init = nc_init;
+        screen.end = nc_end;
 
-        screen.screendraw = nc_screendraw;
-        screen.screendrawtext = nc_screendrawtext;
+        screen.draw = nc_draw;
+        screen.drawtext = nc_drawtext;
 
-        screen.screeninput = nc_screeninput;
+        screen.input = nc_input;
+    }
+    else if(video == V_SDL)
+    {
+        screen.init = sdl_init;
+        screen.end = sdl_end;
+
+        screen.draw = sdl_draw;
+        screen.drawtext = sdl_drawtext;
+
+        screen.input = sdl_input;
+    }
+    else
+    {
+        assert(0 && "Unreachable");
     }
 
     FILE *progfile = fopen(argv[optind], "rb");
@@ -136,6 +153,7 @@ int main(int argc, char **argv)
     if(!vm.mem)
     {
         fprintf(stderr, "error: could not allocate memory: %s\n", strerror(errno));
+        fprintf(stderr, "Buy more ram lol\n");
         return EXIT_BAD_MALLOC;
     }
     memset(vm.mem, 0, MEMORY_SIZE);
@@ -159,7 +177,7 @@ int main(int argc, char **argv)
         return EXIT_BAD_PULSE;
     }
 
-    screen.screeninit();
+    screen.init();
 
     const timing_t target = hztotiming(TARGET_HZ);
     timing_t frametime = 1;
@@ -176,7 +194,7 @@ int main(int argc, char **argv)
 
         if(st != ST_OK)
         {
-            screen.screenend();
+            screen.end();
             
             fprintf(stderr, "error: virtual machine encountered an error: %s\n", sttocstr(st));
             fprintf(stderr, "error occured at PC with op: 0x%04x 0x%04x\n", vm.PC, vm.op);
@@ -187,10 +205,10 @@ int main(int argc, char **argv)
 
         if(vm.redrawscreen)
         {
-            screen.screendrawtext(49, 0, "delay timer: %d\n", vm.delay);
-            screen.screendrawtext(50, 0, "framerate: %lld\n", CLOCKS_PER_SEC / frametime);
-            screen.screendrawtext(51, 0, "frame: %lu\n", frame);
-            screen.screendraw(&vm);
+            screen.drawtext(49, 0, "delay timer: %d\n", vm.delay);
+            screen.drawtext(50, 0, "framerate: %lld\n", CLOCKS_PER_SEC / frametime);
+            screen.drawtext(51, 0, "frame: %lu\n", frame);
+            screen.draw(&vm);
             vm.redrawscreen = 0;
         }
 
@@ -199,7 +217,7 @@ int main(int argc, char **argv)
         frame++;
     }
 
-    screen.screenend();
+    screen.end();
 
 #ifdef DEBUG
     memdump(&vm);
@@ -278,7 +296,7 @@ int8_t input()
         'v'
     };
 
-    int ch = screen.screeninput();
+    int ch = screen.input();
 
     // FIXME: this looks awful
     if(ch == NOINP_KEYCODE)

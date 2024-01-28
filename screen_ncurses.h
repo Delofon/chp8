@@ -3,13 +3,13 @@
 
 #include "vm.h"
 
-void nc_screeninit();
-void nc_screenend();
+void nc_init();
+void nc_end();
 
-void nc_screendraw(vm_t *vm);
-void nc_screendrawtext(int y, int x, const char *format, ...);
+void nc_draw(vm_t *vm);
+void nc_drawtext(int y, int x, const char *format, ...);
 
-int nc_screeninput();
+int nc_input();
 
 #endif
 

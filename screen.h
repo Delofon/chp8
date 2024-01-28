@@ -5,13 +5,13 @@
 
 typedef struct
 {
-    void (*screeninit)();
-    void (*screenend)();
+    void (*init)();
+    void (*end)();
 
-    void (*screendraw)(vm_t *vm);
-    void (*screendrawtext)(int y, int x, const char *format, ...);
+    void (*draw)(vm_t *vm);
+    void (*drawtext)(int y, int x, const char *format, ...);
 
-    int (*screeninput)();
+    int (*input)();
 } screen_t;
 
 #endif

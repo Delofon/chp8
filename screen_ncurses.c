@@ -12,7 +12,7 @@
 
 uint8_t usecolor = 0;
 
-void nc_screeninit()
+void nc_init()
 {
 #ifndef DEBUG
     initscr();
@@ -36,14 +36,14 @@ void nc_screeninit()
     }
 }
 
-void nc_screenend()
+void nc_end()
 {
     resetty();
     endwin();
 }
 
 // TODO: make drawing to ncurses screen more configurable
-void nc_screendraw(vm_t *vm)
+void nc_draw(vm_t *vm)
 {
     if(vm->graphicsmode == LORES)
     {
@@ -109,7 +109,7 @@ void nc_screendraw(vm_t *vm)
     }
 }
 
-void nc_screendrawtext(int y, int x, const char *format, ...)
+void nc_drawtext(int y, int x, const char *format, ...)
 {
     va_list args;
     move(y, x);
@@ -134,7 +134,7 @@ int getch_buf()
     return getch_bf;
 }
 
-int nc_screeninput()
+int nc_input()
 {
     int ch = getch_buf();
     flushinp();
