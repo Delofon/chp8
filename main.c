@@ -18,7 +18,6 @@
 #include "screen_ncurses.h"
 #include "screen_sdl.h"
 
-void drawscr(vm_t *vm);
 void loadfont(vm_t *vm);
 
 void usage()

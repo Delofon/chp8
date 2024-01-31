@@ -7,8 +7,8 @@
 #include "vm.h"
 #include "screen_sdl.h"
 
-#define SDL_SCREEN_WIDTH 1600
-#define SDL_SCREEN_HEIGHT 900
+#define SDL_SCREEN_WIDTH 1024
+#define SDL_SCREEN_HEIGHT 512
 #define SDL_PIXEL_WIDTH 16
 #define SDL_PIXEL_HEIGHT 16
 
