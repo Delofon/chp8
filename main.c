@@ -120,7 +120,7 @@ int main(int argc, char **argv)
     }
     else
     {
-        assert(0 && "Unreachable");
+        assert(0 && "Support for chosen video backend is not implemented yet");
     }
 
     FILE *progfile = fopen(argv[optind], "rb");
