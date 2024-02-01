@@ -35,7 +35,7 @@ typedef enum
     HIRES
 } graphicsmode_t;
 
-typedef struct _vm_t
+typedef struct
 {
     extensions_t extensions;
 
