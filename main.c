@@ -179,7 +179,7 @@ int main(int argc, char **argv)
     screen.init();
 
     const timing_t target = hztotiming(TARGET_HZ);
-    timing_t frametime = 1;
+    timing_t frametime = 1; // 1 to avoid SIGFPE
 
     uint64_t frame = 0;
 
