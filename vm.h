@@ -40,8 +40,11 @@ typedef struct _vm_t
     extensions_t extensions;
 
     uint16_t stack[STACK_SIZE];
-    uint8_t screen[SCREEN_SIZE];
-    uint8_t screenhr[SCREEN_SIZE_HIRES];
+    union
+    {
+        uint8_t screen[SCREEN_SIZE];
+        uint8_t screenhr[SCREEN_SIZE_HIRES];
+    };
     uint8_t *mem;
     uint8_t V[16];
     uint16_t I;
