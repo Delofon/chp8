@@ -48,8 +48,8 @@ void pabeep();
 uint8_t randint();
 void memdump(vm_t *vm);
 
-int coordtoi(int x, int y, int width, int height);
-int itocoord(int i, int *x, int *y, int width, int size);
+uint8_t itocoord(int i, int *x, int *y, int width, int size);
+uint8_t coordtoi(int *i, int x, int y, int width, int height);
 
 #endif
 

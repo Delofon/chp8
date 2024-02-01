@@ -492,7 +492,7 @@ void memdump(vm_t *vm)
     fclose(memdumpf);
 }
 
-int itocoord(int i, int *x, int *y, int width, int size)
+uint8_t itocoord(int i, int *x, int *y, int width, int size)
 {
     if(i < 0) return 0;
     if(i >= size) return 0;
@@ -503,13 +503,15 @@ int itocoord(int i, int *x, int *y, int width, int size)
     return 1;
 }
 
-int coordtoi(int x, int y, int width, int height)
+uint8_t coordtoi(int *i, int x, int y, int width, int height)
 {
-    if(x < 0) return -1;
-    if(x >= width) return -1;
-    if(y < 0) return -1;
-    if(y >= height) return -1;
+    if(x < 0) return 0;
+    if(x >= width) return 0;
+    if(y < 0) return 0;
+    if(y >= height) return 0;
 
-    return x + y * width;
+    *i = x + y * width;
+
+    return 1;
 }
 

@@ -419,8 +419,10 @@ void draw16(vm_t *vm, uint8_t *screen, int x, int y, int width, int height)
                 bit = (sprite[v]   >> (7  - u)) & 0x01;
             else
                 bit = (sprite[v+1] >> (15 - u)) & 0x01;
-            int i = coordtoi(x+u, y+v/2, width, height);
-            if(i == -1) continue;
+
+            int i;
+            if(!coordtoi(&i, x+u, y+v/2, width, height))
+                continue;
 
             if(screen[i] && bit) vm->V[15] = 1;
             screen[i] ^= bit;
@@ -448,8 +450,10 @@ void drawsprite(vm_t *vm, uint8_t *screen, int x, int y, int n, int width, int h
         for(int u = 0; u < 8; u++)
         {
             uint8_t bit = (sprite[v] >> (7 - u)) & 0x01;
-            int i = coordtoi(x+u, y+v, width, height);
-            if(i == -1) continue;
+
+            int i;
+            if(!coordtoi(&i, x+u, y+v, width, height))
+                continue;
 
             if(screen[i] && bit) vm->V[15] = 1;
             screen[i] ^= bit;
