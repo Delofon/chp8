@@ -73,9 +73,10 @@ void nc_draw(vm_t *vm)
         {
             for(int x = 0; x < SCREEN_WIDTH_HIRES; x++)
             {
-                int i = coordtoi(x, y, SCREEN_WIDTH_HIRES, SCREEN_HEIGHT_HIRES);
-                if(i == -1)
+                int i;
+                if(!coordtoi(&i, x, y, SCREEN_WIDTH_HIRES, SCREEN_HEIGHT_HIRES))
                     continue;
+
                 move(y/2, x);
 
 
