@@ -2,6 +2,7 @@ chp8
 memdump
 registers
 
+roms/
 *.rom
 *.ch8
 
