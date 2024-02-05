@@ -1,7 +1,7 @@
 # chp8 - a CHIP-8+ emulator
 Dependencies:
 ```
-libpulse, ncurses
+libpulse, ncurses, SDL2
 ```
 
 References:
