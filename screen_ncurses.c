@@ -14,7 +14,7 @@ uint8_t usecolor = 0;
 
 void nc_init()
 {
-#ifndef DEBUG
+#ifndef FLOOD_WITH_OPS
     initscr();
 #endif
 

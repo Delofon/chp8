@@ -85,6 +85,8 @@ status_t step(vm_t *vm)
 {
     if(!testsegfault(vm->PC, vm))
         return ST_SEGFAULT;
+    if(!testsegfault(vm->PC+1, vm))
+        return ST_SEGFAULT;
 
     uint16_t op   = (vm->mem[vm->PC] << 8) | (vm->mem[vm->PC+1]);
     uint8_t  hn   = (op & 0xf000) >> 8;
@@ -118,7 +120,7 @@ status_t step(vm_t *vm)
         return ST_OK;
     }
 
-#ifdef DEBUG
+#ifdef FLOOD_WITH_OPS
     fprintf(stderr, "========================\n");
     fprintf(stderr, "op: 0x%04x\n", op);
     fprintf(stderr, "registers: ");
@@ -127,6 +129,7 @@ status_t step(vm_t *vm)
         fprintf(stderr, "%d ", vm->V[i]);
     }
     fprintf(stderr, "\nnnn: 0x%04x %d\n", nnn, nnn);
+    fprintf(stderr, "ln: 0x%02x %d\n", ln, ln);
     fprintf(stderr, "PC: 0x%04x\n", vm->PC);
     fprintf(stderr, "SP: 0x%04x\n", vm->SP);
     fprintf(stderr, "I: 0x%04x\n", vm->I);
@@ -277,7 +280,7 @@ status_t step(vm_t *vm)
             else
                 return ST_QUIRK_UNDEFINED;
 #else
-            return vm->PC = vm->V[0] + nnn - 2;
+            vm->PC = vm->V[0] + nnn - 2;
 #endif
             break;
         case 0xc0:
@@ -335,6 +338,8 @@ status_t step(vm_t *vm)
                 case 0x33:
                     if(!testsegfault(vm->I, vm))
                         return ST_SEGFAULT;
+                    if(!testsegfault(vm->I+2, vm))
+                        return ST_SEGFAULT;
 
                     vm->mem[vm->I+2] = vm->V[x]       % 10;
                     vm->mem[vm->I+1] = vm->V[x] / 10  % 10;
@@ -347,6 +352,7 @@ status_t step(vm_t *vm)
                         return ST_SEGFAULT;
 
                     memcpy(vm->mem+vm->I, &vm->V, x+1);
+
                     if(vm->extensions == CHIP8)
                         vm->I += x + 1;
                     else if(vm->extensions == SCHIP);
