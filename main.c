@@ -189,6 +189,11 @@ int main(int argc, char **argv)
 
         timing_t start = now();
 
+        // XXX: unexpected slowness even with
+        // XXX: unlocked framerate in some games such as:
+        // XXX: danm8ku.ch8, supersquare.ch8, octogon.ch8
+        // XXX: as well as lots of flicker in binding.ch8
+        // XXX: something *must* be done about this
         status_t st = step(&vm);
 
         if(st != ST_OK)
