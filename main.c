@@ -493,6 +493,8 @@ uint8_t randint()
 void memdump(vm_t *vm)
 {
     FILE *memdumpf = fopen("memdump", "wb");
+    if(!memdumpf)
+        return;
     fwrite(vm->mem, 1, MEMORY_SIZE, memdumpf);
     fclose(memdumpf);
 }
