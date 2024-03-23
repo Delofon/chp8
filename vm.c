@@ -98,8 +98,7 @@ status_t step(vm_t *vm)
 
     int8_t inp = input();
 
-    uint8_t *shift;
-
+    uint8_t shift;
     uint8_t flag = 0;
 
     vm->op = op;
@@ -232,14 +231,14 @@ status_t step(vm_t *vm)
                     break;
                 case 0x06:
                     if(vm->extensions == CHIP8)
-                        shift = &vm->V[y];
+                        shift = vm->V[y];
                     else if(vm->extensions == SCHIP)
-                        shift = &vm->V[x];
+                        shift = vm->V[x];
                     else
                         return ST_QUIRK_UNDEFINED;
 
-                    flag      = *shift & 0x01;
-                    vm->V[x]  = *shift >> 1;
+                    flag      = shift & 0x01;
+                    vm->V[x]  = shift >> 1;
                     vm->V[15] = flag;
                     break;
                 case 0x07:
@@ -249,14 +248,14 @@ status_t step(vm_t *vm)
                     break;
                 case 0x0e:
                     if(vm->extensions == CHIP8)
-                        shift = &vm->V[y];
+                        shift = vm->V[y];
                     else if(vm->extensions == SCHIP)
-                        shift = &vm->V[x];
+                        shift = vm->V[x];
                     else
                         return ST_QUIRK_UNDEFINED;
 
-                    flag      = *shift >> 7;
-                    vm->V[x]  = *shift << 1;
+                    flag      = shift >> 7;
+                    vm->V[x]  = shift << 1;
                     vm->V[15] = flag;
                     break;
                 default:
