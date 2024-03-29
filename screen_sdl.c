@@ -114,34 +114,8 @@ void sdl_drawtext(int y, int x, const char *format, ...)
     //va_end(vargs);
 }
 
-int pollevent_bf = NOINP_KEYCODE;
-timing_t pollevent_buf_cl = 0;
 int sdl_input()
 {
-    const timing_t pollevent_buf_cl_target = hztotiming(GETCH_HZ);
-    timing_t cl = now();
-
-    if(cl - pollevent_buf_cl >= pollevent_buf_cl_target)
-    {
-        SDL_Event event;
-
-        while(SDL_PollEvent(&event))
-        {
-            switch(event.type)
-            {
-                case SDL_QUIT:
-                    pollevent_bf = 'h';
-                    break;
-                case SDL_TEXTINPUT:
-                    pollevent_bf = event.text.text[0];
-                    break;
-                default:
-                    pollevent_bf = NOINP_KEYCODE;
-                    break;
-            }
-        }
-    }
-
-    return pollevent_bf;
+    return -1;
 }
 

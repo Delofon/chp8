@@ -96,28 +96,10 @@ status_t step(vm_t *vm)
     uint8_t  x    = (op & 0x0f00) >> 8;
     uint8_t  y    = (op & 0x00f0) >> 4;
 
-    int8_t inp = input();
-
     uint8_t shift;
     uint8_t flag = 0;
 
     vm->op = op;
-
-    if(inp == HALT_KEYCODE)
-    {
-        vm->halt = 1;
-        return ST_OK;
-    }
-    else if(inp == MEMDUMP_KEYCODE)
-    {
-        memdump(vm);
-        return ST_OK;
-    }
-    else if(inp == REFRESH_KEYCODE)
-    {
-        vm->redrawscreen = 1;
-        return ST_OK;
-    }
 
 #ifdef FLOOD_WITH_OPS
     fprintf(stderr, "========================\n");
@@ -297,14 +279,10 @@ status_t step(vm_t *vm)
             draw(vm, vm->V[x], vm->V[y], n);
             break;
         case 0xe0:
-            if(ln == 0x9e)
-            {
-                if(inp == vm->V[x]) vm->PC+=2;
-            }
-            else if(ln == 0xa1)
-            {
-                if(inp != vm->V[x]) vm->PC+=2;
-            }
+            if(ln == 0x9e);
+            // TODO: non-blocking input
+            else if(ln == 0xa1);
+            // TODO: non-blocking input
             else
                 return ST_OP_UNDEFINED;
             break;
@@ -315,7 +293,7 @@ status_t step(vm_t *vm)
                     vm->V[x] = vm->delay;
                     break;
                 case 0x0a:
-                    vm->V[x] = blockinginput();
+                    // TODO: blocking input
                     break;
                 case 0x15:
                     vm->delay = vm->V[x];
