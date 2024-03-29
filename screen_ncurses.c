@@ -119,30 +119,8 @@ void nc_drawtext(int y, int x, const char *format, ...)
     va_end(args);
 }
 
-int getch_bf = ERR;
-timing_t getch_buf_cl = 0;
-int getch_buf()
-{
-    const timing_t getch_buf_cl_target = hztotiming(GETCH_HZ);
-    timing_t cl = now();
-
-    // FIXME: why is getch_bf == ERR needed here?
-    if(getch_bf == ERR || cl - getch_buf_cl >= getch_buf_cl_target)
-    {
-        getch_buf_cl = cl;
-        getch_bf = getch();
-    }
-    return getch_bf;
-}
-
 int nc_input()
 {
-    int ch = getch_buf();
-    flushinp();
-
-    if(ch == ERR)
-        return NOINP_KEYCODE;
-
-    return ch;
+    return -1;
 }
 

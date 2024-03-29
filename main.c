@@ -300,48 +300,8 @@ int8_t input()
         'v'
     };
 
-    int ch = screen.input();
-
-    // FIXME: this looks awful
-    if(ch == NOINP_KEYCODE)
-        return NOINP_KEYCODE;
-    else if(ch == 'h')
-        return HALT_KEYCODE;
-    else if(ch == 'm')
-        return MEMDUMP_KEYCODE;
-    else if(ch == 'p')
-        return REFRESH_KEYCODE;
-
-    for(int8_t i = 0; i < 16; i++)
-    {
-        if(ch == mapping[i]) 
-            return i;
-    }
-
     return NOINP_KEYCODE;
 }
-
-int8_t blockinginput()
-{
-    int inp;
-    timing_t start = now();
-
-    do
-    {
-        inp = input();
-        sleepuntil(start, hztotiming(TARGET_HZ));
-    } while(inp == NOINP_KEYCODE);
-
-    return inp;
-}
-
-//void showinp(int inp)
-//{
-//    if(inp != NOINP_KEYCODE)
-//        mvprintw(50, 0, "%c", inp+'0');
-//    else
-//        mvprintw(50, 0, " ");
-//}
 
 void loadfont(vm_t *vm)
 {
