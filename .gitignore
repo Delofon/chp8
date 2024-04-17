@@ -8,3 +8,6 @@ roms/
 
 *.swp
 
+external/
+build/
+

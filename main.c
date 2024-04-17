@@ -1,6 +1,10 @@
 // TODO: remove non-portable headers
+
+#if !defined(_WIN32) && !defined(NO_PULSE)
 #include <pulse/simple.h>
 #include <pulse/error.h>
+#endif
+
 #include <unistd.h>
 #include <stdlib.h>
 #include <stdio.h>
@@ -15,11 +19,17 @@
 #include "timing.h"
 #include "sound.h"
 #include "screen.h"
+
+#ifndef NO_NCURSES
 #include "screen_ncurses.h"
+#endif
+
 #include "screen_sdl.h"
 
 void loadfont(vm_t *vm);
 
+// TODO: make usage represent the actual configuration of the program
+// TODO: (i.e. if there is no ncurses, remove ncurses from valid arguments and so on)
 void usage()
 {
     printf("Usage: chp8 [options] <program>\n");
@@ -33,7 +43,9 @@ void usage()
     printf("        Choose audio backend. Valid arguments are: pulse, sdl. Default: pulse\n");
 }
 
+#if !defined(_WIN32) && !defined(NO_PULSE)
 pa_simple *s = 0;
+#endif
 
 screen_t screen;
 
@@ -100,6 +112,7 @@ int main(int argc, char **argv)
 
     if(video == V_NCURSES)
     {
+#ifndef NO_NCURSES
         screen.init = nc_init;
         screen.end = nc_end;
 
@@ -107,6 +120,10 @@ int main(int argc, char **argv)
         screen.drawtext = nc_drawtext;
 
         screen.input = nc_input;
+#else
+        fprintf(stderr, "error: ncurses is not supported.\n");
+        return 1;
+#endif
     }
     else if(video == V_SDL)
     {
@@ -168,6 +185,7 @@ int main(int argc, char **argv)
 
     fclose(progfile);
 
+#if !defined(_WIN32) && !defined(NO_PULSE)
     int paerror = 0;
     s = pabegin(&paerror);
     if(paerror != PA_OK)
@@ -175,6 +193,7 @@ int main(int argc, char **argv)
         fprintf(stderr, "error: could not init pulseaudio: %s\n", pa_strerror(paerror));
         return EXIT_BAD_PULSE;
     }
+#endif
 
     screen.init();
 
@@ -237,7 +256,9 @@ int main(int argc, char **argv)
     printf("I: 0x%04x\n", vm.I);
 #endif
 
+#if !defined(_WIN32) && !defined(NO_PULSE)
     paend(s);
+#endif
     free(vm.mem);
     return 0;
 }
@@ -245,7 +266,9 @@ int main(int argc, char **argv)
 // TODO: maybe move to sound.c?
 void pabeep()
 {
+#if !defined(_WIN32) && !defined(NO_PULSE)
     paplay(s, 440, 1000);
+#endif
 }
 
 // TODO: maybe open the file once at startup and then
