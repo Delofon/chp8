@@ -4,9 +4,10 @@
 #include <stdint.h>
 #include <time.h>
 
-#define CLOCKS_PER_USEC (CLOCKS_PER_SEC / 1000000ul)
+#define USEC_PER_SEC (1000000ul)
 
-typedef clock_t timing_t;
+typedef uint64_t usec_t;
+typedef usec_t timing_t;
 
 timing_t now();
 timing_t hztotiming(int hz);
