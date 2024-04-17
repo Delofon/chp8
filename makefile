@@ -7,7 +7,7 @@ CFLAGS := $(shell pkg-config --cflags libpulse-simple ncurses sdl2)
 LIBS := -lm $(shell pkg-config --libs libpulse-simple ncurses sdl2)
 
 CFLAGS_WIN := -Iexternal/SDL2/include -Dmain=SDL_main -DSDL_MAIN_HANDLED -DNO_PULSE -DNO_NCURSES
-LIBS_WIN := -Lexternal/SDL2/lib -lmingw32 -lm -lSDL2main -lSDL2 -mwindows
+LIBS_WIN := -Lexternal/SDL2/lib -lmingw32 -lm -lSDL2main -lSDL2
 
 CWARNINGS := -Wall -Wextra -Werror=shadow -Wswitch-enum -pedantic
 CNOWARNINGS := -Wno-strict-prototypes
