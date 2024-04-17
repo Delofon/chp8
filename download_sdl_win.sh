@@ -22,6 +22,8 @@ curl -o "$SDL2_DEV_NAME" -L 'https://github.com/libsdl-org/SDL/releases/download
 
 # unpack runtime
 unzip "$SDL2_LIB_NAME"
+rm "README-SDL.txt"
+rm "$SDL2_LIB_NAME"
 mk ../build
 ln -s "../external/SDL2.dll" "../build/SDL2.dll"
 
