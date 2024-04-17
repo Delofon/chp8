@@ -42,5 +42,5 @@ external/SDL2:
 > ./download_sdl_win.sh
 
 build/libwinpthread-1.dll:
-> cp /usr/x86_64-w64-mingw32/bin/libwinpthread-1.dll build/
+> ln -s /usr/x86_64-w64-mingw32/bin/libwinpthread-1.dll build/libwinpthread-1.dll
 
