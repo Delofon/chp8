@@ -23,7 +23,7 @@ chp8-win: build/chp8-win.exe
 build/chp8: $(SOURCES) mkdir
 > $(CC) -O2 $(CFLAGS) $(CWARNINGS) $(CNOWARNINGS) $(ARGS) -o $@ $(SOURCES) $(LIBS)
 
-build/chp8-win.exe: $(SOURCES_WIN) external/SDL2 mkdir
+build/chp8-win.exe: $(SOURCES_WIN) external/SDL2 mkdir build/libwinpthread-1.dll
 > $(CC_MINGW) -O2 $(CFLAGS_WIN) $(CWARNINGS) $(CNOWARNINGS) $(ARGS) -o $@ $(SOURCES_WIN) $(LIBS_WIN)
 
 .PHONY: debug
@@ -40,4 +40,7 @@ clean:
 
 external/SDL2:
 > ./download_sdl_win.sh
+
+build/libwinpthread-1.dll:
+> ln -s /usr/x86_64-w64-mingw32/bin/libwinpthread-1.dll build/libwinpthread-1.dll
 
