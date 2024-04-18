@@ -6,7 +6,7 @@ CC_MINGW := x86_64-w64-mingw32-gcc
 CFLAGS := $(shell pkg-config --cflags libpulse-simple ncurses sdl2)
 LIBS := -lm $(shell pkg-config --libs libpulse-simple ncurses sdl2)
 
-CFLAGS_WIN := -Iexternal/SDL2/include -Dmain=SDL_main -DSDL_MAIN_HANDLED -DNO_PULSE -DNO_NCURSES
+CFLAGS_WIN := -Iexternal/SDL2/include -Dmain=SDL_main -DNO_PULSE -DNO_NCURSES
 LIBS_WIN := -Lexternal/SDL2/lib -lmingw32 -lm -lSDL2main -lSDL2
 
 CWARNINGS := -Wall -Wextra -Werror=shadow -Wswitch-enum -pedantic
@@ -28,7 +28,7 @@ build/chp8-win.exe: $(SOURCES_WIN) external/SDL2 mkdir build/libwinpthread-1.dll
 
 .PHONY: debug
 debug: $(SOURCES) mkdir
-> $(CC) -O0 -g3 -DDEBUG $(CFLAGS) $(CWARNINGS) $(CNOWARNINGS) -Wno-format $(ARGS) -o chp8 $^ $(LIBS)
+> $(CC) -O0 -g3 -DDEBUG $(CFLAGS) $(CWARNINGS) $(CNOWARNINGS) -Wno-format $(ARGS) -o chp8 $(SOURCES) $(LIBS)
 
 .PHONY: mkdir
 mkdir:
